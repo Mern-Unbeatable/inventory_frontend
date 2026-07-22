@@ -1,0 +1,13 @@
+import { z } from 'zod';
+
+export const branchFormSchema = z.object({
+  name: z.string().trim().min(2, 'Name must be at least 2 characters').max(100),
+  code: z
+    .string()
+    .trim()
+    .max(50)
+    .optional()
+    .or(z.literal(''))
+    .transform((value) => (value ? value : undefined)),
+  countryId: z.string().uuid('Select a country'),
+});
