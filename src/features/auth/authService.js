@@ -44,6 +44,18 @@ export const authService = {
     return user;
   },
 
+  async updateProfile(payload) {
+    const { data } = await authAPI.updateProfile(payload);
+    const user = unwrapData(data);
+    setAuthSession({ user });
+    return user;
+  },
+
+  async changePassword(payload) {
+    const { data } = await authAPI.changePassword(payload);
+    return unwrapData(data);
+  },
+
   getPersistedUser() {
     return getStoredUser();
   },

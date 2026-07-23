@@ -9,6 +9,8 @@ import BranchesPage from '@/pages/BranchesPage.jsx';
 import CountriesPage from '@/pages/CountriesPage.jsx';
 import UsersPage from '@/pages/UsersPage.jsx';
 import InventoryPage from '@/pages/InventoryPage.jsx';
+import ProfilePage from '@/pages/ProfilePage.jsx';
+import SettingsPage from '@/pages/SettingsPage.jsx';
 import { ROLES } from '@/utils/auth/auth.utils.js';
 
 export function AppRouter() {
@@ -22,6 +24,8 @@ export function AppRouter() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/inventory" element={<InventoryPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/settings" element={<SettingsPage />} />
 
           <Route element={<RoleRoute roles={[ROLES.ADMIN]} />}>
             <Route path="/countries" element={<CountriesPage />} />

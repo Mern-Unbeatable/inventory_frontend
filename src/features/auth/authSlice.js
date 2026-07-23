@@ -37,6 +37,28 @@ export const bootstrapAuthThunk = createAsyncThunk(
   }
 );
 
+export const updateProfileThunk = createAsyncThunk(
+  'auth/updateProfile',
+  async (payload, { rejectWithValue }) => {
+    try {
+      return await authService.updateProfile(payload);
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const changePasswordThunk = createAsyncThunk(
+  'auth/changePassword',
+  async (payload, { rejectWithValue }) => {
+    try {
+      return await authService.changePassword(payload);
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
 const persistedUser = authService.getPersistedUser();
 
 const initialState = {
@@ -46,6 +68,7 @@ const initialState = {
   // Dedicated to login/logout UI — bootstrap must not overwrite this,
   // otherwise a "no token" boot leaves status=failed and confuses the form.
   status: 'idle',
+  mutationStatus: 'idle',
   error: null,
 };
 
@@ -80,6 +103,7 @@ const authSlice = createSlice({
 
       .addCase(logoutThunk.fulfilled, (state) => {
         state.status = 'idle';
+        state.mutationStatus = 'idle';
         state.user = null;
         state.isAuthenticated = false;
         state.error = null;
@@ -87,6 +111,7 @@ const authSlice = createSlice({
       .addCase(logoutThunk.rejected, (state) => {
         // Always clear local session even if the API call fails.
         state.status = 'idle';
+        state.mutationStatus = 'idle';
         state.user = null;
         state.isAuthenticated = false;
         state.error = null;
@@ -106,6 +131,33 @@ const authSlice = createSlice({
         if (action.payload?.code !== 'NO_TOKEN') {
           state.error = action.payload?.message || null;
         }
+      })
+
+      .addCase(updateProfileThunk.pending, (state) => {
+        state.mutationStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(updateProfileThunk.fulfilled, (state, action) => {
+        state.mutationStatus = 'succeeded';
+        state.user = action.payload;
+        state.error = null;
+      })
+      .addCase(updateProfileThunk.rejected, (state, action) => {
+        state.mutationStatus = 'failed';
+        state.error = action.payload?.message || 'Failed to update profile';
+      })
+
+      .addCase(changePasswordThunk.pending, (state) => {
+        state.mutationStatus = 'loading';
+        state.error = null;
+      })
+      .addCase(changePasswordThunk.fulfilled, (state) => {
+        state.mutationStatus = 'succeeded';
+        state.error = null;
+      })
+      .addCase(changePasswordThunk.rejected, (state, action) => {
+        state.mutationStatus = 'failed';
+        state.error = action.payload?.message || 'Failed to change password';
       });
   },
 });

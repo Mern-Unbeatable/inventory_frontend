@@ -73,7 +73,7 @@ export default function DashboardPage() {
     },
     {
       key: 'revenue',
-      header: 'Revenue',
+      header: 'Sales',
       render: (row) => formatCurrency(row.revenue),
     },
     {
@@ -238,7 +238,7 @@ export default function DashboardPage() {
           tone='slate'
         />
         <StatCard
-          title='Revenue'
+          title='Total Sell'
           value={formatCurrency(totals.revenue)}
           icon={DollarSign}
           tone='green'
@@ -254,7 +254,7 @@ export default function DashboardPage() {
 
       <section className='mt-6 rounded-xl border border-slate-200 bg-white shadow-sm'>
         <div className='flex items-center gap-2 border-b border-slate-200 px-5 py-4'>
-          <ShoppingCart className='size-4 text-slate-500' />
+          <ShoppingCart className='size-6 text-slate-800' />
           <div>
             <h3 className='text-sm font-semibold text-slate-900'>
               My recent sales

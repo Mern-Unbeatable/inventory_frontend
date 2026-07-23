@@ -7,6 +7,7 @@ export const HTTP_ENDPOINTS = {
     REFRESH: '/auth/refresh',
     LOGOUT: '/auth/logout',
     ME: '/auth/me',
+    PASSWORD: '/auth/password',
   },
   USERS: {
     BASE: '/users',

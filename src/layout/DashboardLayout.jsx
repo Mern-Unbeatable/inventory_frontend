@@ -10,7 +10,10 @@ const TITLE_MAP = {
   '/products': 'Products',
   '/inventory': 'Inventory',
   '/branches': 'Branches',
+  '/countries': 'Countries',
   '/users': 'Users',
+  '/profile': 'Profile',
+  '/settings': 'Settings',
 };
 
 export function DashboardLayout() {
@@ -18,14 +21,16 @@ export function DashboardLayout() {
   const { pathname } = useLocation();
 
   const title = useMemo(() => {
-    const match = Object.keys(TITLE_MAP).find((path) => pathname.startsWith(path));
+    const match = Object.keys(TITLE_MAP).find((path) =>
+      pathname.startsWith(path),
+    );
     return TITLE_MAP[match] || 'Inventory';
   }, [pathname]);
 
   return (
-    <div className="flex h-full min-h-screen bg-surface-muted">
-      <div className="hidden w-64 shrink-0 lg:block">
-        <div className="fixed inset-y-0 left-0 w-64">
+    <div className='flex h-full min-h-screen bg-surface-muted'>
+      <div className='hidden w-64 shrink-0 lg:block'>
+        <div className='fixed inset-y-0 left-0 w-64'>
           <Sidebar />
         </div>
       </div>
@@ -34,12 +39,12 @@ export function DashboardLayout() {
         <Sidebar onNavigate={() => setMobileOpen(false)} />
       </Drawer>
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className='flex min-w-0 flex-1 flex-col'>
         <Navbar title={title} onMenuClick={() => setMobileOpen(true)} />
-        <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
+        <main className='flex-1 px-4 py-6 sm:px-6 lg:px-8'>
           <Outlet />
         </main>
-        <Footer />
+        {/* <Footer /> */}
       </div>
     </div>
   );

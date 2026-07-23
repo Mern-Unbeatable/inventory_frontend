@@ -1,9 +1,17 @@
 import { useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
-import { bootstrapAuthThunk, clearAuthError, loginThunk, logoutThunk } from './authSlice.js';
+import {
+  bootstrapAuthThunk,
+  changePasswordThunk,
+  clearAuthError,
+  loginThunk,
+  logoutThunk,
+  updateProfileThunk,
+} from './authSlice.js';
 import {
   selectAuthError,
+  selectAuthMutationStatus,
   selectAuthStatus,
   selectIsAuthenticated,
   selectIsBootstrapped,
@@ -18,6 +26,7 @@ export const useAuth = () => {
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const isBootstrapped = useSelector(selectIsBootstrapped);
   const status = useSelector(selectAuthStatus);
+  const mutationStatus = useSelector(selectAuthMutationStatus);
   const error = useSelector(selectAuthError);
 
   const login = useCallback(
@@ -49,11 +58,45 @@ export const useAuth = () => {
 
   const bootstrap = useCallback(() => dispatch(bootstrapAuthThunk()), [dispatch]);
 
+  const updateProfile = useCallback(
+    async (payload) => {
+      dispatch(clearAuthError());
+      const result = await dispatch(updateProfileThunk(payload));
+
+      if (updateProfileThunk.fulfilled.match(result)) {
+        toast.success('Profile updated');
+        return { success: true, user: result.payload };
+      }
+
+      toast.error(result.payload?.message || 'Failed to update profile');
+      return { success: false, error: result.payload };
+    },
+    [dispatch]
+  );
+
+  const changePassword = useCallback(
+    async (payload) => {
+      dispatch(clearAuthError());
+      const result = await dispatch(changePasswordThunk(payload));
+
+      if (changePasswordThunk.fulfilled.match(result)) {
+        toast.success('Password updated. Please sign in again.');
+        await dispatch(logoutThunk());
+        return { success: true };
+      }
+
+      toast.error(result.payload?.message || 'Failed to change password');
+      return { success: false, error: result.payload };
+    },
+    [dispatch]
+  );
+
   return {
     user,
     isAuthenticated,
     isBootstrapped,
     status,
+    mutationStatus,
     error,
     isAdmin: isAdmin(user),
     isSeller: isSeller(user),
@@ -61,5 +104,7 @@ export const useAuth = () => {
     login,
     logout,
     bootstrap,
+    updateProfile,
+    changePassword,
   };
 };
