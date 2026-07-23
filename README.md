@@ -41,7 +41,9 @@ Default API: `http://localhost:5000/api`
 | Role | Access |
 |------|--------|
 | ADMIN | Dashboard, countries, branches, users, products CRUD, inventory assign/quantity |
-| SELLER | Dashboard (own summary), products (read), inventory (own assigned stock, read-only) |
+| SELLER | Dashboard (own summary), products (assigned + sell), inventory (own stock) |
+
+For a full walkthrough of Admin and Seller day-to-day flows, see **[../WORKFLOWS.md](../WORKFLOWS.md)**.
 
 ## API alignment notes
 
