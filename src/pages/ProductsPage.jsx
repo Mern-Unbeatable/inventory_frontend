@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, Pencil, Plus, ShoppingCart, Trash2 } from 'lucide-react';
@@ -233,114 +233,133 @@ export default function ProductsPage() {
     loadProducts();
   }, [loadProducts, filters.page, filters.search]);
 
-  const columns = [
-    {
-      key: 'image',
-      header: '',
-      render: (row) => {
-        const src = resolveMediaUrl(row.imageUrl);
-        return src ? (
-          <img
-            src={src}
-            alt=""
-            className="size-10 rounded-lg object-cover ring-1 ring-slate-200"
-          />
-        ) : (
-          <div className="flex size-10 items-center justify-center rounded-lg bg-slate-100 text-xs text-slate-400">
-            —
-          </div>
-        );
-      },
-    },
-    {
-      key: 'title',
-      header: 'Title',
-      render: (row) => (
-        <span className="font-medium text-slate-900">{row.title}</span>
-      ),
-    },
-    { key: 'sku', header: 'SKU', render: (row) => row.sku || '—' },
-    {
-      key: 'price',
-      header: 'Price',
-      render: (row) => formatCurrency(row.price),
-    },
-    ...(isAdmin
-      ? [
-          {
-            key: 'description',
-            header: 'Description',
-            render: (row) => (
-              <span className='block max-w-xs truncate text-slate-500'>
-                {row.description || '—'}
-              </span>
-            ),
-          },
-          {
-            key: 'createdAt',
-            header: 'Created',
-            render: (row) => formatDate(row.createdAt),
-          },
-        ]
-      : [
-          {
-            key: 'quantity',
-            header: 'Assigned qty',
-            render: (row) => formatNumber(row.quantity ?? 0),
-          },
-          {
-            key: 'status',
-            header: 'Status',
-            render: (row) => (
-              <StockStatusChip remainingStock={row.quantity ?? 0} />
-            ),
-          },
-        ]),
-    {
-      key: 'actions',
-      header: 'Actions',
-      render: (row) => (
-        <div className='flex items-center gap-1'>
-          <Button
-            variant='ghost'
-            size='sm'
-            icon={Eye}
-            onClick={() => {
-              setViewing(row);
-              setViewOpen(true);
-            }}
-          />
-          {isAdmin ? (
-            <>
-              <Button
-                variant='ghost'
-                size='sm'
-                icon={Pencil}
-                onClick={() => {
-                  setEditing(row);
-                  setFormOpen(true);
-                }}
-              />
-              <Button
-                variant='ghost'
-                size='sm'
-                icon={Trash2}
-                onClick={() => setDeleting(row)}
-              />
-            </>
-          ) : (
-            <Button
-              variant='ghost'
-              size='sm'
-              icon={ShoppingCart}
-              title='Record sale'
-              onClick={() => setSellTarget(row)}
+  const columns = useMemo(
+    () => [
+      {
+        key: 'image',
+        header: '',
+        className: 'w-14',
+        render: (row) => {
+          const src = resolveMediaUrl(row.imageUrl);
+          return src ? (
+            <img
+              src={src}
+              alt=""
+              className="size-9 rounded-lg object-cover ring-1 ring-slate-200 sm:size-10"
             />
-          )}
-        </div>
-      ),
-    },
-  ];
+          ) : (
+            <div className="flex size-9 items-center justify-center rounded-lg bg-slate-100 text-xs text-slate-400 sm:size-10">
+              —
+            </div>
+          );
+        },
+      },
+      {
+        key: 'title',
+        header: 'Title',
+        className: 'min-w-[9rem] max-w-[14rem] whitespace-normal',
+        render: (row) => (
+          <span className="block truncate font-medium text-slate-900">
+            {row.title}
+          </span>
+        ),
+      },
+      {
+        key: 'sku',
+        header: 'SKU',
+        className: 'min-w-[6rem]',
+        render: (row) => (
+          <span className="truncate text-slate-600">{row.sku || '—'}</span>
+        ),
+      },
+      {
+        key: 'price',
+        header: 'Price',
+        render: (row) => formatCurrency(row.price),
+      },
+      ...(isAdmin
+        ? [
+            {
+              key: 'description',
+              header: 'Description',
+              className: 'min-w-[10rem] max-w-[16rem] whitespace-normal',
+              render: (row) => (
+                <span className="block truncate text-slate-500">
+                  {row.description || '—'}
+                </span>
+              ),
+            },
+            {
+              key: 'createdAt',
+              header: 'Created',
+              render: (row) => formatDate(row.createdAt),
+            },
+          ]
+        : [
+            {
+              key: 'quantity',
+              header: 'Qty',
+              render: (row) => formatNumber(row.quantity ?? 0),
+            },
+            {
+              key: 'status',
+              header: 'Status',
+              render: (row) => (
+                <StockStatusChip remainingStock={row.quantity ?? 0} />
+              ),
+            },
+          ]),
+      {
+        key: 'actions',
+        header: 'Actions',
+        sticky: 'right',
+        render: (row) => (
+          <div className="flex items-center gap-0.5 sm:gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={Eye}
+              title="View"
+              onClick={() => {
+                setViewing(row);
+                setViewOpen(true);
+              }}
+            />
+            {isAdmin ? (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  icon={Pencil}
+                  title="Edit"
+                  onClick={() => {
+                    setEditing(row);
+                    setFormOpen(true);
+                  }}
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  icon={Trash2}
+                  title="Delete"
+                  onClick={() => setDeleting(row)}
+                />
+              </>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={ShoppingCart}
+                title="Record sale"
+                onClick={() => setSellTarget(row)}
+              />
+            )}
+          </div>
+        ),
+      },
+    ],
+    [isAdmin],
+  );
 
   const handleSubmit = async (values) => {
     const result = editing
@@ -386,21 +405,22 @@ export default function ProductsPage() {
         }
       />
 
-      <div className='mb-4 max-w-sm'>
+      <div className="mb-4 max-w-sm">
         <SearchBar
           value={filters.search}
-          placeholder='Search by title or SKU…'
+          placeholder="Search by title or SKU…"
           onSearch={(search) => updateFilters({ search, page: 1 })}
         />
       </div>
 
-      <div className='overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm'>
+      <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
         <Table
           columns={columns}
           data={items}
           keyExtractor={(row) => row.id}
           isLoading={isLoading}
-          emptyTitle='No products yet'
+          minWidthClassName={isAdmin ? 'min-w-[48rem]' : 'min-w-[40rem]'}
+          emptyTitle="No products yet"
           emptyDescription={
             isAdmin
               ? 'Create your first catalog product.'

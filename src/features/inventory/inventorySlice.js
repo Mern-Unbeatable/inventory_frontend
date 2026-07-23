@@ -7,14 +7,28 @@ export const fetchInventoryThunk = createAsyncThunk(
   async ({ role } = {}, { getState, rejectWithValue }) => {
     try {
       if (role === 'SELLER') {
+        const { page, limit, search } = getState().inventory.filters;
         const mine = await inventoryService.myInventory();
+        const query = (search || '').trim().toLowerCase();
+        const filtered = query
+          ? (mine.items || []).filter((row) => {
+              const title = row.product?.title?.toLowerCase() || '';
+              const sku = row.product?.sku?.toLowerCase() || '';
+              return title.includes(query) || sku.includes(query);
+            })
+          : mine.items || [];
+
+        const total = filtered.length;
+        const start = (page - 1) * limit;
+        const items = filtered.slice(start, start + limit);
+
         return {
-          items: mine.items,
+          items,
           meta: {
-            page: 1,
-            limit: mine.items.length || 10,
-            total: mine.items.length,
-            totalPages: 1,
+            page,
+            limit,
+            total,
+            totalPages: Math.ceil(total / limit) || 1,
           },
           summary: mine.summary,
           mode: 'seller',

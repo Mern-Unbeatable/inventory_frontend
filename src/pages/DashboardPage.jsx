@@ -116,7 +116,7 @@ export default function DashboardPage() {
           description='Live overview across countries, branches, and sellers'
         />
 
-        <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
+        <div className='grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4'>
           <StatCard
             title='Countries'
             value={formatNumber(totals.countries)}
@@ -140,9 +140,6 @@ export default function DashboardPage() {
             icon={Package}
             tone='amber'
           />
-        </div>
-
-        <div className='mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
           <StatCard
             title='Assignments'
             value={formatNumber(totals.assignments)}
@@ -170,9 +167,9 @@ export default function DashboardPage() {
           />
         </div>
 
-        <div className='mt-6 grid gap-6 xl:grid-cols-2'>
-          <section className='rounded-xl border border-slate-200 bg-white shadow-sm'>
-            <div className='border-b border-slate-200 px-5 py-4'>
+        <div className='mt-6 grid gap-6 lg:grid-cols-2'>
+          <section className='overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm'>
+            <div className='border-b border-slate-200 px-4 py-4 sm:px-5'>
               <h3 className='text-sm font-semibold text-slate-900'>
                 Stock & revenue by country
               </h3>
@@ -180,7 +177,7 @@ export default function DashboardPage() {
                 Revenue updates when sellers record sales
               </p>
             </div>
-            <div className='p-4'>
+            <div className='overflow-x-auto p-3 sm:p-4'>
               <Table
                 columns={countryColumns}
                 data={data?.countryBreakdown || []}
@@ -191,10 +188,10 @@ export default function DashboardPage() {
             </div>
           </section>
 
-          <section className='rounded-xl border border-slate-200 bg-white shadow-sm'>
-            <div className='flex items-center gap-2 border-b border-slate-200 px-5 py-4'>
-              <ShoppingCart className='size-6 text-slate-500' />
-              <div>
+          <section className='overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm'>
+            <div className='flex items-center gap-2 border-b border-slate-200 px-4 py-4 sm:px-5'>
+              <ShoppingCart className='size-5 shrink-0 text-slate-500 sm:size-6' />
+              <div className='min-w-0'>
                 <h3 className='text-sm font-semibold text-slate-900'>
                   Recent sales
                 </h3>
@@ -203,7 +200,7 @@ export default function DashboardPage() {
                 </p>
               </div>
             </div>
-            <div className='p-4'>
+            <div className='overflow-x-auto p-3 sm:p-4'>
               <Table
                 columns={saleColumns}
                 data={data?.recentSales || []}
@@ -225,7 +222,7 @@ export default function DashboardPage() {
         description='Your sales and assigned inventory summary'
       />
 
-      <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
+      <div className='grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4'>
         <StatCard
           title='Assigned products'
           value={formatNumber(totals.assignedProducts)}
@@ -252,10 +249,10 @@ export default function DashboardPage() {
         />
       </div>
 
-      <section className='mt-6 rounded-xl border border-slate-200 bg-white shadow-sm'>
-        <div className='flex items-center gap-2 border-b border-slate-200 px-5 py-4'>
-          <ShoppingCart className='size-6 text-slate-800' />
-          <div>
+      <section className='mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm'>
+        <div className='flex items-center gap-2 border-b border-slate-200 px-4 py-4 sm:px-5'>
+          <ShoppingCart className='size-5 shrink-0 text-slate-800 sm:size-6' />
+          <div className='min-w-0'>
             <h3 className='text-sm font-semibold text-slate-900'>
               My recent sales
             </h3>
@@ -264,7 +261,7 @@ export default function DashboardPage() {
             </p>
           </div>
         </div>
-        <div className='p-4'>
+        <div className='overflow-x-auto p-3 sm:p-4'>
           <Table
             columns={saleColumns}
             data={data?.recentSales || []}

@@ -1,8 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Pencil, Plus, ShoppingCart, Trash2, UserPlus } from 'lucide-react';
+import {
+  Boxes,
+  Package,
+  Pencil,
+  Plus,
+  ShoppingCart,
+  Trash2,
+  UserPlus,
+} from 'lucide-react';
 import { PageHeader } from '@/components/common/PageHeader.jsx';
+import { SearchBar } from '@/components/common/SearchBar.jsx';
+import { StatCard } from '@/components/cards/StatCard.jsx';
 import { Table } from '@/components/tables/Table.jsx';
 import { Pagination } from '@/components/tables/Pagination.jsx';
 import { Button } from '@/components/ui/Button.jsx';
@@ -354,106 +364,113 @@ export default function InventoryPage() {
     [products],
   );
 
-  const columns = [
-    {
-      key: 'product',
-      header: 'Product',
-      render: (row) => (
-        <div>
-          <p className='font-medium text-slate-900'>{row.product?.title}</p>
-          <p className='text-xs text-slate-500'>
-            {row.product?.sku || 'No SKU'}
-          </p>
-        </div>
-      ),
-    },
-    ...(isAdmin
-      ? [
-          {
-            key: 'seller',
-            header: 'Seller',
-            render: (row) => (
-              <div>
-                <p className='font-medium text-slate-900'>
-                  {row.user?.name || '—'}
-                </p>
-                <p className='text-xs text-slate-500'>
-                  {row.user?.branch?.name || 'No branch'}
-                  {row.user?.branch?.country?.name
-                    ? ` · ${row.user.branch.country.name}`
-                    : ''}
-                </p>
-              </div>
-            ),
-          },
-        ]
-      : []),
-    {
-      key: 'price',
-      header: 'Catalog price',
-      render: (row) => formatCurrency(row.product?.price),
-    },
-    {
-      key: 'quantity',
-      header: 'Qty',
-      render: (row) => formatNumber(row.quantity),
-    },
-    {
-      key: 'status',
-      header: 'Status',
-      render: (row) => <StockStatusChip remainingStock={row.quantity} />,
-    },
-    {
-      key: 'actions',
-      header: 'Actions',
-      render: (row) => (
-        <div className='flex items-center gap-1'>
-          <Button
-            variant='ghost'
-            size='sm'
-            icon={ShoppingCart}
-            title='Record sale'
-            onClick={() => {
-              setEditing(row);
-              setSellOpen(true);
-            }}
-          />
-          {isAdmin && (
-            <>
-              <Button
-                variant='ghost'
-                size='sm'
-                icon={Pencil}
-                title='Update stock'
-                onClick={() => {
-                  setEditing(row);
-                  setQuantityOpen(true);
-                }}
-              />
-              <Button
-                variant='ghost'
-                size='sm'
-                icon={Plus}
-                title='Adjust by delta'
-                onClick={() => {
-                  setEditing(row);
-                  setAdjustOpen(true);
-                }}
-              />
-              <Button
-                variant='ghost'
-                size='sm'
-                icon={Trash2}
-                title='Unassign'
-                onClick={() => setUnassigning(row)}
-              />
-            </>
-          )}
-        </div>
-      ),
-    },
-  ];
-
+  const columns = useMemo(
+    () => [
+      {
+        key: 'product',
+        header: 'Product',
+        className: 'min-w-[10rem] max-w-[14rem] whitespace-normal',
+        render: (row) => (
+          <div className='min-w-0'>
+            <p className='truncate font-medium text-slate-900'>
+              {row.product?.title}
+            </p>
+            <p className='truncate text-xs text-slate-500'>
+              {row.product?.sku || 'No SKU'}
+            </p>
+          </div>
+        ),
+      },
+      ...(isAdmin
+        ? [
+            {
+              key: 'seller',
+              header: 'Seller',
+              className: 'min-w-[10rem] max-w-[14rem] whitespace-normal',
+              render: (row) => (
+                <div className='min-w-0'>
+                  <p className='truncate font-medium text-slate-900'>
+                    {row.user?.name || '—'}
+                  </p>
+                  <p className='truncate text-xs text-slate-500'>
+                    {row.user?.branch?.name || 'No branch'}
+                    {row.user?.branch?.country?.name
+                      ? ` · ${row.user.branch.country.name}`
+                      : ''}
+                  </p>
+                </div>
+              ),
+            },
+          ]
+        : []),
+      {
+        key: 'price',
+        header: 'Price',
+        render: (row) => formatCurrency(row.product?.price),
+      },
+      {
+        key: 'quantity',
+        header: 'Qty',
+        render: (row) => formatNumber(row.quantity),
+      },
+      {
+        key: 'status',
+        header: 'Status',
+        render: (row) => <StockStatusChip remainingStock={row.quantity} />,
+      },
+      {
+        key: 'actions',
+        header: 'Actions',
+        sticky: 'right',
+        render: (row) => (
+          <div className='flex items-center gap-0.5 sm:gap-1'>
+            <Button
+              variant='ghost'
+              size='sm'
+              icon={ShoppingCart}
+              title='Record sale'
+              onClick={() => {
+                setEditing(row);
+                setSellOpen(true);
+              }}
+            />
+            {isAdmin ? (
+              <>
+                <Button
+                  variant='ghost'
+                  size='sm'
+                  icon={Pencil}
+                  title='Update stock'
+                  onClick={() => {
+                    setEditing(row);
+                    setQuantityOpen(true);
+                  }}
+                />
+                <Button
+                  variant='ghost'
+                  size='sm'
+                  icon={Plus}
+                  title='Adjust by delta'
+                  onClick={() => {
+                    setEditing(row);
+                    setAdjustOpen(true);
+                  }}
+                />
+                <Button
+                  variant='ghost'
+                  size='sm'
+                  icon={Trash2}
+                  title='Unassign'
+                  onClick={() => setUnassigning(row)}
+                />
+              </>
+            ) : null}
+          </div>
+        ),
+      },
+    ],
+    [isAdmin],
+  );
   if (status === 'failed' && !items.length) {
     return (
       <ErrorState
@@ -483,57 +500,82 @@ export default function InventoryPage() {
       />
 
       {!isAdmin && summary ? (
-        <div className='mb-4 grid gap-3 sm:grid-cols-2'>
-          <div className='rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm'>
-            Products: <strong>{formatNumber(summary.productCount)}</strong>
-          </div>
-          <div className='rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm'>
-            Total qty: <strong>{formatNumber(summary.totalQuantity)}</strong>
-          </div>
-        </div>
-      ) : null}
-
-      {isAdmin ? (
-        <div className='mb-4 grid gap-3 sm:grid-cols-3'>
-          <Select
-            value={filters.countryId}
-            onChange={(event) =>
-              updateFilters({
-                countryId: event.target.value,
-                branchId: '',
-                userId: '',
-                page: 1,
-              })
-            }
-            options={[{ value: '', label: 'All countries' }, ...countryOptions]}
+        <div className='mb-4 grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-2'>
+          <StatCard
+            title='Assigned products'
+            value={formatNumber(summary.productCount)}
+            icon={Package}
+            tone='primary'
           />
-          <Select
-            value={filters.branchId}
-            onChange={(event) =>
-              updateFilters({
-                branchId: event.target.value,
-                userId: '',
-                page: 1,
-              })
-            }
-            options={[{ value: '', label: 'All branches' }, ...branchOptions]}
-          />
-          <Select
-            value={filters.userId}
-            onChange={(event) =>
-              updateFilters({ userId: event.target.value, page: 1 })
-            }
-            options={[{ value: '', label: 'All sellers' }, ...userOptions]}
+          <StatCard
+            title='Total quantity'
+            value={formatNumber(summary.totalQuantity)}
+            icon={Boxes}
+            tone='green'
           />
         </div>
       ) : null}
 
-      <div className='overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm'>
+      <div
+        className={`mb-4 grid grid-cols-1 gap-3 ${
+          isAdmin
+            ? 'sm:grid-cols-2 lg:grid-cols-4'
+            : 'sm:grid-cols-1 lg:max-w-sm'
+        }`}
+      >
+        <div className={isAdmin ? 'sm:col-span-2 lg:col-span-1' : ''}>
+          <SearchBar
+            value={filters.search}
+            placeholder='Search by title or SKU…'
+            onSearch={(search) => updateFilters({ search, page: 1 })}
+          />
+        </div>
+        {isAdmin ? (
+          <>
+            <Select
+              value={filters.countryId}
+              onChange={(event) =>
+                updateFilters({
+                  countryId: event.target.value,
+                  branchId: '',
+                  userId: '',
+                  page: 1,
+                })
+              }
+              options={[
+                { value: '', label: 'All countries' },
+                ...countryOptions,
+              ]}
+            />
+            <Select
+              value={filters.branchId}
+              onChange={(event) =>
+                updateFilters({
+                  branchId: event.target.value,
+                  userId: '',
+                  page: 1,
+                })
+              }
+              options={[{ value: '', label: 'All branches' }, ...branchOptions]}
+            />
+            <Select
+              value={filters.userId}
+              onChange={(event) =>
+                updateFilters({ userId: event.target.value, page: 1 })
+              }
+              options={[{ value: '', label: 'All sellers' }, ...userOptions]}
+            />
+          </>
+        ) : null}
+      </div>
+
+      <div className='rounded-xl border border-slate-200 bg-white shadow-sm'>
         <Table
           columns={columns}
           data={items}
           keyExtractor={(row) => row.id}
           isLoading={isLoading}
+          minWidthClassName={isAdmin ? 'min-w-[48rem]' : 'min-w-[40rem]'}
           emptyTitle='No inventory records'
           emptyDescription={
             isAdmin
@@ -541,15 +583,13 @@ export default function InventoryPage() {
               : 'No products have been assigned to you yet.'
           }
         />
-        {isAdmin ? (
-          <Pagination
-            page={meta.page}
-            totalPages={meta.totalPages}
-            total={meta.total}
-            limit={meta.limit}
-            onPageChange={(page) => updateFilters({ page })}
-          />
-        ) : null}
+        <Pagination
+          page={meta.page}
+          totalPages={meta.totalPages}
+          total={meta.total}
+          limit={meta.limit}
+          onPageChange={(page) => updateFilters({ page })}
+        />
       </div>
 
       <AssignModal

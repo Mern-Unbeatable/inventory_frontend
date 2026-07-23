@@ -8,13 +8,13 @@ export function Pagination({ page = 1, totalPages = 1, total = 0, limit = 10, on
   const endItem = Math.min(page * limit, total);
 
   return (
-    <div className="flex items-center justify-between border-t border-slate-200 px-4 py-3">
-      <p className="text-sm text-slate-500">
+    <div className="flex flex-col gap-3 border-t border-slate-200 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+      <p className="text-center text-sm text-slate-500 sm:text-left">
         Showing <span className="font-medium text-slate-700">{startItem}</span>–
         <span className="font-medium text-slate-700">{endItem}</span> of{' '}
         <span className="font-medium text-slate-700">{total}</span>
       </p>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-center gap-2">
         <Button
           variant="outline"
           size="sm"
@@ -23,7 +23,7 @@ export function Pagination({ page = 1, totalPages = 1, total = 0, limit = 10, on
           onClick={() => onPageChange(page - 1)}
           aria-label="Previous page"
         />
-        <span className="text-sm text-slate-600">
+        <span className="min-w-20 text-center text-sm text-slate-600">
           Page {page} of {totalPages}
         </span>
         <Button
