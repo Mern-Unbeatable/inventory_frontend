@@ -500,7 +500,7 @@ export default function InventoryPage() {
       />
 
       {!isAdmin && summary ? (
-        <div className='mb-4 grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-2'>
+        <div className='mb-4 grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4'>
           <StatCard
             title='Assigned products'
             value={formatNumber(summary.productCount)}
