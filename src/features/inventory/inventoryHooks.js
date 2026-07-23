@@ -4,7 +4,9 @@ import toast from 'react-hot-toast';
 import {
   adjustQuantityThunk,
   assignStockThunk,
+  clearUserInventory,
   fetchInventoryThunk,
+  fetchUserInventoryThunk,
   sellStockThunk,
   setInventoryFilters,
   setQuantityThunk,
@@ -18,6 +20,10 @@ import {
   selectInventoryMutationStatus,
   selectInventoryStatus,
   selectInventorySummary,
+  selectUserInventoryError,
+  selectUserInventoryItems,
+  selectUserInventoryStatus,
+  selectUserInventorySummary,
 } from './inventorySelectors.js';
 import { useAuth } from '../auth/authHooks.js';
 
@@ -32,11 +38,25 @@ export const useInventory = () => {
   const status = useSelector(selectInventoryStatus);
   const mutationStatus = useSelector(selectInventoryMutationStatus);
   const error = useSelector(selectInventoryError);
+  const userInventoryItems = useSelector(selectUserInventoryItems);
+  const userInventorySummary = useSelector(selectUserInventorySummary);
+  const userInventoryStatus = useSelector(selectUserInventoryStatus);
+  const userInventoryError = useSelector(selectUserInventoryError);
 
   const loadInventory = useCallback(() => {
     if (!user?.role) return;
     return dispatch(fetchInventoryThunk({ role: user.role }));
   }, [dispatch, user?.role]);
+
+  const loadUserInventory = useCallback(
+    (userId) => dispatch(fetchUserInventoryThunk(userId)),
+    [dispatch]
+  );
+
+  const clearAssignedInventory = useCallback(
+    () => dispatch(clearUserInventory()),
+    [dispatch]
+  );
 
   const updateFilters = useCallback(
     (next) => dispatch(setInventoryFilters(next)),
@@ -121,10 +141,17 @@ export const useInventory = () => {
     status,
     mutationStatus,
     error,
+    userInventoryItems,
+    userInventorySummary,
+    userInventoryStatus,
+    userInventoryError,
     isAdmin,
     isLoading: status === 'loading',
+    isUserInventoryLoading: userInventoryStatus === 'loading',
     isMutating: mutationStatus === 'loading',
     loadInventory,
+    loadUserInventory,
+    clearAssignedInventory,
     updateFilters,
     assignStock,
     setQuantity,

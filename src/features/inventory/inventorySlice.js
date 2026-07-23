@@ -94,6 +94,22 @@ export const unassignStockThunk = createAsyncThunk(
   }
 );
 
+export const fetchUserInventoryThunk = createAsyncThunk(
+  'inventory/fetchByUser',
+  async (userId, { rejectWithValue }) => {
+    try {
+      const payload = await inventoryService.getUserInventory(userId);
+      return {
+        userId,
+        items: payload?.items || [],
+        summary: payload?.summary || { productCount: 0, totalQuantity: 0 },
+      };
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
 const initialState = {
   items: [],
   meta: { page: 1, limit: appConfig.paginationDefaultLimit, total: 0, totalPages: 1 },
@@ -106,6 +122,13 @@ const initialState = {
     search: '',
   },
   summary: null,
+  userInventory: {
+    userId: null,
+    items: [],
+    summary: null,
+    status: 'idle',
+    error: null,
+  },
   status: 'idle',
   mutationStatus: 'idle',
   error: null,
@@ -117,6 +140,15 @@ const inventorySlice = createSlice({
   reducers: {
     setInventoryFilters: (state, action) => {
       state.filters = { ...state.filters, ...action.payload };
+    },
+    clearUserInventory: (state) => {
+      state.userInventory = {
+        userId: null,
+        items: [],
+        summary: null,
+        status: 'idle',
+        error: null,
+      };
     },
   },
   extraReducers: (builder) => {
@@ -134,6 +166,23 @@ const inventorySlice = createSlice({
       .addCase(fetchInventoryThunk.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload?.message || 'Failed to load inventory';
+      })
+      .addCase(fetchUserInventoryThunk.pending, (state) => {
+        state.userInventory.status = 'loading';
+        state.userInventory.error = null;
+      })
+      .addCase(fetchUserInventoryThunk.fulfilled, (state, action) => {
+        state.userInventory.status = 'succeeded';
+        state.userInventory.userId = action.payload.userId;
+        state.userInventory.items = action.payload.items;
+        state.userInventory.summary = action.payload.summary;
+      })
+      .addCase(fetchUserInventoryThunk.rejected, (state, action) => {
+        state.userInventory.status = 'failed';
+        state.userInventory.items = [];
+        state.userInventory.summary = null;
+        state.userInventory.error =
+          action.payload?.message || 'Failed to load assigned products';
       })
       .addCase(assignStockThunk.pending, (state) => {
         state.mutationStatus = 'loading';
@@ -173,9 +222,12 @@ const inventorySlice = createSlice({
       })
       .addCase(unassignStockThunk.fulfilled, (state, action) => {
         state.items = state.items.filter((item) => item.id !== action.payload);
+        state.userInventory.items = state.userInventory.items.filter(
+          (item) => item.id !== action.payload
+        );
       });
   },
 });
 
-export const { setInventoryFilters } = inventorySlice.actions;
+export const { setInventoryFilters, clearUserInventory } = inventorySlice.actions;
 export default inventorySlice.reducer;

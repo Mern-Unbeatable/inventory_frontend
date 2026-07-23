@@ -10,7 +10,10 @@ import { Input } from '@/components/ui/Input.jsx';
 import { Select } from '@/components/ui/Select.jsx';
 import { Modal } from '@/components/ui/Modal.jsx';
 import { ConfirmDialog } from '@/components/feedback/ConfirmDialog.jsx';
-import { StockStatusChip } from '@/components/ui/StatusChip.jsx';
+import {
+  AvailabilityStatus,
+  StockStatusChip,
+} from '@/components/ui/StatusChip.jsx';
 import { ErrorState } from '@/components/ui/ErrorState.jsx';
 import { useInventory } from '@/features/inventory/inventoryHooks.js';
 import {
@@ -25,7 +28,14 @@ import { useProducts } from '@/features/products/productsHooks.js';
 import { useUsers } from '@/features/users/usersHooks.js';
 import { formatCurrency, formatNumber } from '@/utils/format/currency.js';
 
-function AssignModal({ isOpen, onClose, users, products, onSubmit, isLoading }) {
+function AssignModal({
+  isOpen,
+  onClose,
+  users,
+  products,
+  onSubmit,
+  isLoading,
+}) {
   const {
     register,
     handleSubmit,
@@ -44,11 +54,11 @@ function AssignModal({ isOpen, onClose, users, products, onSubmit, isLoading }) 
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Assign product"
-      description="Assign a master product to a seller with starting quantity"
+      title='Assign product'
+      description='Assign a master product to a seller with starting quantity'
       footer={
         <>
-          <Button variant="outline" onClick={onClose} disabled={isLoading}>
+          <Button variant='outline' onClick={onClose} disabled={isLoading}>
             Cancel
           </Button>
           <Button onClick={handleSubmit(onSubmit)} isLoading={isLoading}>
@@ -57,27 +67,27 @@ function AssignModal({ isOpen, onClose, users, products, onSubmit, isLoading }) 
         </>
       }
     >
-      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+      <form className='space-y-4' onSubmit={handleSubmit(onSubmit)}>
         <Select
-          id="userId"
-          label="Seller"
-          placeholder="Select seller"
+          id='userId'
+          label='Seller'
+          placeholder='Select seller'
           options={users}
           error={errors.userId?.message}
           {...register('userId')}
         />
         <Select
-          id="productId"
-          label="Product"
-          placeholder="Select product"
+          id='productId'
+          label='Product'
+          placeholder='Select product'
           options={products}
           error={errors.productId?.message}
           {...register('productId')}
         />
         <Input
-          id="quantity"
-          label="Initial quantity"
-          type="number"
+          id='quantity'
+          label='Initial quantity'
+          type='number'
           error={errors.quantity?.message}
           {...register('quantity')}
         />
@@ -105,7 +115,7 @@ function QuantityModal({ isOpen, onClose, row, onSubmit, isLoading }) {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Update stock"
+      title='Update stock'
       description={
         row
           ? `${row.product?.title || 'Product'}${row.user?.name ? ` · ${row.user.name}` : ''}`
@@ -113,7 +123,7 @@ function QuantityModal({ isOpen, onClose, row, onSubmit, isLoading }) {
       }
       footer={
         <>
-          <Button variant="outline" onClick={onClose} disabled={isLoading}>
+          <Button variant='outline' onClick={onClose} disabled={isLoading}>
             Cancel
           </Button>
           <Button onClick={handleSubmit(onSubmit)} isLoading={isLoading}>
@@ -122,11 +132,11 @@ function QuantityModal({ isOpen, onClose, row, onSubmit, isLoading }) {
         </>
       }
     >
-      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+      <form className='space-y-4' onSubmit={handleSubmit(onSubmit)}>
         <Input
-          id="quantity"
-          label="Remaining quantity"
-          type="number"
+          id='quantity'
+          label='Remaining quantity'
+          type='number'
           error={errors.quantity?.message}
           {...register('quantity')}
         />
@@ -154,7 +164,7 @@ function AdjustModal({ isOpen, onClose, row, onSubmit, isLoading }) {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Adjust quantity"
+      title='Adjust quantity'
       description={
         row
           ? `Current: ${row.quantity}. Use positive to increase, negative to decrease.`
@@ -162,7 +172,7 @@ function AdjustModal({ isOpen, onClose, row, onSubmit, isLoading }) {
       }
       footer={
         <>
-          <Button variant="outline" onClick={onClose} disabled={isLoading}>
+          <Button variant='outline' onClick={onClose} disabled={isLoading}>
             Cancel
           </Button>
           <Button onClick={handleSubmit(onSubmit)} isLoading={isLoading}>
@@ -171,11 +181,11 @@ function AdjustModal({ isOpen, onClose, row, onSubmit, isLoading }) {
         </>
       }
     >
-      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+      <form className='space-y-4' onSubmit={handleSubmit(onSubmit)}>
         <Input
-          id="delta"
-          label="Delta (+ / −)"
-          type="number"
+          id='delta'
+          label='Delta (+ / −)'
+          type='number'
           error={errors.delta?.message}
           {...register('delta')}
         />
@@ -199,34 +209,44 @@ function SellModal({ isOpen, onClose, row, onSubmit, isLoading }) {
     if (isOpen) reset({ quantity: 1 });
   }, [isOpen, reset]);
 
+  const availableQty = row?.quantity ?? 0;
+  const isOutOfStock = availableQty <= 0;
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Record sale"
-      description={
-        row
-          ? `${row.product?.title || 'Product'} · Available: ${row.quantity ?? 0}`
-          : undefined
+      title={row?.product?.title || 'Record sale'}
+      status={
+        row ? <AvailabilityStatus remainingStock={availableQty} /> : undefined
       }
       footer={
         <>
-          <Button variant="outline" onClick={onClose} disabled={isLoading}>
+          <Button variant='outline' onClick={onClose} disabled={isLoading}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit(onSubmit)} isLoading={isLoading}>
+          <Button
+            onClick={handleSubmit(onSubmit)}
+            isLoading={isLoading}
+            disabled={isOutOfStock || isLoading}
+          >
             Confirm sale
           </Button>
         </>
       }
     >
-      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+      <form className='space-y-4' onSubmit={handleSubmit(onSubmit)}>
         <Input
-          id="soldQuantity"
-          label="Units sold"
-          type="number"
-          hint="Stock will decrease by this amount"
+          id='soldQuantity'
+          label='Units sold'
+          type='number'
+          hint={
+            isOutOfStock
+              ? 'No stock available to sell'
+              : 'Stock will decrease by this amount'
+          }
           error={errors.quantity?.message}
+          disabled={isOutOfStock || isLoading}
           {...register('quantity')}
         />
       </form>
@@ -255,9 +275,21 @@ export default function InventoryPage() {
   } = useInventory();
 
   const { items: countries, loadCountries } = useCountries();
-  const { items: branches, loadBranches, updateFilters: updateBranchFilters } = useBranches();
-  const { items: products, loadProducts, updateFilters: updateProductFilters } = useProducts();
-  const { items: users, loadUsers, updateFilters: updateUserFilters } = useUsers();
+  const {
+    items: branches,
+    loadBranches,
+    updateFilters: updateBranchFilters,
+  } = useBranches();
+  const {
+    items: products,
+    loadProducts,
+    updateFilters: updateProductFilters,
+  } = useProducts();
+  const {
+    items: users,
+    loadUsers,
+    updateFilters: updateUserFilters,
+  } = useUsers();
 
   const [assignOpen, setAssignOpen] = useState(false);
   const [quantityOpen, setQuantityOpen] = useState(false);
@@ -299,14 +331,14 @@ export default function InventoryPage() {
 
   const countryOptions = useMemo(
     () => countries.map((c) => ({ value: c.id, label: c.name })),
-    [countries]
+    [countries],
   );
   const branchOptions = useMemo(
     () =>
       branches
         .filter((b) => !filters.countryId || b.countryId === filters.countryId)
         .map((b) => ({ value: b.id, label: b.name })),
-    [branches, filters.countryId]
+    [branches, filters.countryId],
   );
   const userOptions = useMemo(
     () =>
@@ -314,11 +346,12 @@ export default function InventoryPage() {
         .filter((u) => u.role === 'SELLER')
         .filter((u) => !filters.branchId || u.branchId === filters.branchId)
         .map((u) => ({ value: u.id, label: `${u.name} (${u.email})` })),
-    [users, filters.branchId]
+    [users, filters.branchId],
   );
   const productOptions = useMemo(
-    () => products.map((p) => ({ value: p.id, label: `${p.title} (${p.sku})` })),
-    [products]
+    () =>
+      products.map((p) => ({ value: p.id, label: `${p.title} (${p.sku})` })),
+    [products],
   );
 
   const columns = [
@@ -327,8 +360,10 @@ export default function InventoryPage() {
       header: 'Product',
       render: (row) => (
         <div>
-          <p className="font-medium text-slate-900">{row.product?.title}</p>
-          <p className="text-xs text-slate-500">{row.product?.sku || 'No SKU'}</p>
+          <p className='font-medium text-slate-900'>{row.product?.title}</p>
+          <p className='text-xs text-slate-500'>
+            {row.product?.sku || 'No SKU'}
+          </p>
         </div>
       ),
     },
@@ -339,8 +374,10 @@ export default function InventoryPage() {
             header: 'Seller',
             render: (row) => (
               <div>
-                <p className="font-medium text-slate-900">{row.user?.name || '—'}</p>
-                <p className="text-xs text-slate-500">
+                <p className='font-medium text-slate-900'>
+                  {row.user?.name || '—'}
+                </p>
+                <p className='text-xs text-slate-500'>
                   {row.user?.branch?.name || 'No branch'}
                   {row.user?.branch?.country?.name
                     ? ` · ${row.user.branch.country.name}`
@@ -370,12 +407,12 @@ export default function InventoryPage() {
       key: 'actions',
       header: 'Actions',
       render: (row) => (
-        <div className="flex items-center gap-1">
+        <div className='flex items-center gap-1'>
           <Button
-            variant="ghost"
-            size="sm"
+            variant='ghost'
+            size='sm'
             icon={ShoppingCart}
-            title="Record sale"
+            title='Record sale'
             onClick={() => {
               setEditing(row);
               setSellOpen(true);
@@ -384,30 +421,30 @@ export default function InventoryPage() {
           {isAdmin && (
             <>
               <Button
-                variant="ghost"
-                size="sm"
+                variant='ghost'
+                size='sm'
                 icon={Pencil}
-                title="Update stock"
+                title='Update stock'
                 onClick={() => {
                   setEditing(row);
                   setQuantityOpen(true);
                 }}
               />
               <Button
-                variant="ghost"
-                size="sm"
+                variant='ghost'
+                size='sm'
                 icon={Plus}
-                title="Adjust by delta"
+                title='Adjust by delta'
                 onClick={() => {
                   setEditing(row);
                   setAdjustOpen(true);
                 }}
               />
               <Button
-                variant="ghost"
-                size="sm"
+                variant='ghost'
+                size='sm'
                 icon={Trash2}
-                title="Unassign"
+                title='Unassign'
                 onClick={() => setUnassigning(row)}
               />
             </>
@@ -419,14 +456,18 @@ export default function InventoryPage() {
 
   if (status === 'failed' && !items.length) {
     return (
-      <ErrorState title="Could not load inventory" description={error} onRetry={loadInventory} />
+      <ErrorState
+        title='Could not load inventory'
+        description={error}
+        onRetry={loadInventory}
+      />
     );
   }
 
   return (
     <div>
       <PageHeader
-        title="Inventory"
+        title='Inventory'
         description={
           isAdmin
             ? 'Assign products to sellers and monitor live stock'
@@ -442,47 +483,58 @@ export default function InventoryPage() {
       />
 
       {!isAdmin && summary ? (
-        <div className="mb-4 grid gap-3 sm:grid-cols-2">
-          <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm">
+        <div className='mb-4 grid gap-3 sm:grid-cols-2'>
+          <div className='rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm'>
             Products: <strong>{formatNumber(summary.productCount)}</strong>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm">
+          <div className='rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm'>
             Total qty: <strong>{formatNumber(summary.totalQuantity)}</strong>
           </div>
         </div>
       ) : null}
 
       {isAdmin ? (
-        <div className="mb-4 grid gap-3 sm:grid-cols-3">
+        <div className='mb-4 grid gap-3 sm:grid-cols-3'>
           <Select
             value={filters.countryId}
             onChange={(event) =>
-              updateFilters({ countryId: event.target.value, branchId: '', userId: '', page: 1 })
+              updateFilters({
+                countryId: event.target.value,
+                branchId: '',
+                userId: '',
+                page: 1,
+              })
             }
             options={[{ value: '', label: 'All countries' }, ...countryOptions]}
           />
           <Select
             value={filters.branchId}
             onChange={(event) =>
-              updateFilters({ branchId: event.target.value, userId: '', page: 1 })
+              updateFilters({
+                branchId: event.target.value,
+                userId: '',
+                page: 1,
+              })
             }
             options={[{ value: '', label: 'All branches' }, ...branchOptions]}
           />
           <Select
             value={filters.userId}
-            onChange={(event) => updateFilters({ userId: event.target.value, page: 1 })}
+            onChange={(event) =>
+              updateFilters({ userId: event.target.value, page: 1 })
+            }
             options={[{ value: '', label: 'All sellers' }, ...userOptions]}
           />
         </div>
       ) : null}
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className='overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm'>
         <Table
           columns={columns}
           data={items}
           keyExtractor={(row) => row.id}
           isLoading={isLoading}
-          emptyTitle="No inventory records"
+          emptyTitle='No inventory records'
           emptyDescription={
             isAdmin
               ? 'Assign a product to a seller to get started.'
@@ -566,9 +618,9 @@ export default function InventoryPage() {
       <ConfirmDialog
         isOpen={Boolean(unassigning)}
         onClose={() => setUnassigning(null)}
-        title="Unassign product?"
+        title='Unassign product?'
         description={`Remove “${unassigning?.product?.title}” from ${unassigning?.user?.name}?`}
-        confirmLabel="Unassign"
+        confirmLabel='Unassign'
         isLoading={isMutating}
         onConfirm={async () => {
           const result = await unassignStock(unassigning.id);

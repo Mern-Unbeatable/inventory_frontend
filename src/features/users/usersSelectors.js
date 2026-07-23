@@ -1,6 +1,9 @@
 export const selectUserItems = (state) => state.users.items;
 export const selectUserMeta = (state) => state.users.meta;
 export const selectUserFilters = (state) => state.users.filters;
+export const selectCurrentUser = (state) => state.users.current;
 export const selectUsersStatus = (state) => state.users.status;
+export const selectUsersDetailStatus = (state) => state.users.detailStatus;
 export const selectUsersMutationStatus = (state) => state.users.mutationStatus;
 export const selectUsersError = (state) => state.users.error;
+export const selectUsersDetailError = (state) => state.users.detailError;

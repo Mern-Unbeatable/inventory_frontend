@@ -5,3 +5,8 @@ export const selectInventorySummary = (state) => state.inventory.summary;
 export const selectInventoryStatus = (state) => state.inventory.status;
 export const selectInventoryMutationStatus = (state) => state.inventory.mutationStatus;
 export const selectInventoryError = (state) => state.inventory.error;
+export const selectUserInventory = (state) => state.inventory.userInventory;
+export const selectUserInventoryItems = (state) => state.inventory.userInventory.items;
+export const selectUserInventorySummary = (state) => state.inventory.userInventory.summary;
+export const selectUserInventoryStatus = (state) => state.inventory.userInventory.status;
+export const selectUserInventoryError = (state) => state.inventory.userInventory.error;

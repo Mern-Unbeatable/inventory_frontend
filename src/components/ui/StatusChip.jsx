@@ -6,14 +6,37 @@ import { appConfig } from '@/config/app.config.js';
  * `status` field on the backend models — status is purely a UI-level
  * classification computed from the live stock count.
  */
-export function StockStatusChip({ remainingStock, threshold = appConfig.lowStockThreshold }) {
+export function getStockAvailability(
+  remainingStock,
+  threshold = appConfig.lowStockThreshold,
+) {
   if (remainingStock <= 0) {
-    return <Badge color="red">Out of Stock</Badge>;
+    return { label: 'Out of Stock', color: 'red', textClass: 'text-red-600' };
   }
   if (remainingStock <= threshold) {
-    return <Badge color="amber">Low Stock</Badge>;
+    return { label: 'Low Stock', color: 'amber', textClass: 'text-orange-600' };
   }
-  return <Badge color="green">In Stock</Badge>;
+  return { label: 'Available', color: 'green', textClass: 'text-green-600' };
+}
+
+export function StockStatusChip({
+  remainingStock,
+  threshold = appConfig.lowStockThreshold,
+}) {
+  const { label, color } = getStockAvailability(remainingStock, threshold);
+  return <Badge color={color}>{label}</Badge>;
+}
+
+export function AvailabilityStatus({ remainingStock, showQuantity = true }) {
+  const qty = remainingStock ?? 0;
+  const { label, textClass } = getStockAvailability(qty);
+
+  return (
+    <p className={`font-medium ${textClass}`}>
+      {label}
+      {showQuantity ? ` · ${qty} units` : null}
+    </p>
+  );
 }
 
 export function RoleChip({ role }) {

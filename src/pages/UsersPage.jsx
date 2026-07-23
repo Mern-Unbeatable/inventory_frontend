@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { Eye, Pencil, Plus, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/components/common/PageHeader.jsx';
 import { SearchBar } from '@/components/common/SearchBar.jsx';
 import { Table } from '@/components/tables/Table.jsx';
@@ -105,6 +106,7 @@ function UserFormModal({ isOpen, onClose, user, branches, onSubmit, isLoading })
 }
 
 export default function UsersPage() {
+  const navigate = useNavigate();
   const {
     items,
     meta,
@@ -162,13 +164,27 @@ export default function UsersPage() {
           <Button
             variant="ghost"
             size="sm"
+            icon={Eye}
+            title="View"
+            onClick={() => navigate(`/users/${row.id}`)}
+          />
+          <Button
+            variant="ghost"
+            size="sm"
             icon={Pencil}
+            title="Edit"
             onClick={() => {
               setEditing(row);
               setFormOpen(true);
             }}
           />
-          <Button variant="ghost" size="sm" icon={Trash2} onClick={() => setDeleting(row)} />
+          <Button
+            variant="ghost"
+            size="sm"
+            icon={Trash2}
+            title="Delete"
+            onClick={() => setDeleting(row)}
+          />
         </div>
       ),
     },

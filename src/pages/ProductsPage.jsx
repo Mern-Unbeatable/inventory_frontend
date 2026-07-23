@@ -16,10 +16,11 @@ import { useAuth } from '@/features/auth/authHooks.js';
 import { useProducts } from '@/features/products/productsHooks.js';
 import { useInventory } from '@/features/inventory/inventoryHooks.js';
 import { productFormSchema } from '@/features/products/productsValidation.js';
+import { sellStockSchema } from '@/features/inventory/inventoryValidation.js';
 import {
-  sellStockSchema,
-} from '@/features/inventory/inventoryValidation.js';
-import { StockStatusChip } from '@/components/ui/StatusChip.jsx';
+  AvailabilityStatus,
+  StockStatusChip,
+} from '@/components/ui/StatusChip.jsx';
 import { formatCurrency, formatNumber } from '@/utils/format/currency.js';
 import { formatDate } from '@/utils/format/date.js';
 
@@ -44,7 +45,7 @@ function ProductFormModal({ isOpen, onClose, product, onSubmit, isLoading }) {
             description: product.description || '',
             price: product.price ?? 0,
           }
-        : { title: '', sku: '', description: '', price: 0 }
+        : { title: '', sku: '', description: '', price: 0 },
     );
   }, [isOpen, product, reset]);
 
@@ -53,11 +54,11 @@ function ProductFormModal({ isOpen, onClose, product, onSubmit, isLoading }) {
       isOpen={isOpen}
       onClose={onClose}
       title={product ? 'Edit product' : 'Create product'}
-      description="Global master catalog item"
-      size="lg"
+      description='Global master catalog item'
+      size='lg'
       footer={
         <>
-          <Button variant="outline" onClick={onClose} disabled={isLoading}>
+          <Button variant='outline' onClick={onClose} disabled={isLoading}>
             Cancel
           </Button>
           <Button onClick={handleSubmit(onSubmit)} isLoading={isLoading}>
@@ -66,27 +67,35 @@ function ProductFormModal({ isOpen, onClose, product, onSubmit, isLoading }) {
         </>
       }
     >
-      <form className="grid gap-4 sm:grid-cols-2" onSubmit={handleSubmit(onSubmit)}>
+      <form
+        className='grid gap-4 sm:grid-cols-2'
+        onSubmit={handleSubmit(onSubmit)}
+      >
         <Input
-          id="title"
-          label="Title"
-          containerClassName="sm:col-span-2"
+          id='title'
+          label='Title'
+          containerClassName='sm:col-span-2'
           error={errors.title?.message}
           {...register('title')}
         />
-        <Input id="sku" label="SKU" error={errors.sku?.message} {...register('sku')} />
         <Input
-          id="price"
-          label="Price"
-          type="number"
-          step="0.01"
+          id='sku'
+          label='SKU'
+          error={errors.sku?.message}
+          {...register('sku')}
+        />
+        <Input
+          id='price'
+          label='Price'
+          type='number'
+          step='0.01'
           error={errors.price?.message}
           {...register('price')}
         />
         <Textarea
-          id="description"
-          label="Description"
-          containerClassName="sm:col-span-2"
+          id='description'
+          label='Description'
+          containerClassName='sm:col-span-2'
           error={errors.description?.message}
           {...register('description')}
         />
@@ -110,20 +119,29 @@ function SellerSellModal({ isOpen, onClose, product, onSubmit, isLoading }) {
     if (isOpen) reset({ quantity: 1 });
   }, [isOpen, reset]);
 
+  const availableQty = product?.quantity ?? 0;
+  const isOutOfStock = availableQty <= 0;
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Record sale"
-      description={
-        product ? `${product.title} · Available: ${product.quantity ?? 0}` : undefined
+      title={product?.title || 'Record sale'}
+      status={
+        product ? (
+          <AvailabilityStatus remainingStock={availableQty} />
+        ) : undefined
       }
       footer={
         <>
           <Button variant="outline" onClick={onClose} disabled={isLoading}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit(onSubmit)} isLoading={isLoading}>
+          <Button
+            onClick={handleSubmit(onSubmit)}
+            isLoading={isLoading}
+            disabled={isOutOfStock || isLoading}
+          >
             Confirm sale
           </Button>
         </>
@@ -134,8 +152,13 @@ function SellerSellModal({ isOpen, onClose, product, onSubmit, isLoading }) {
           id="soldQuantity"
           label="Units sold"
           type="number"
-          hint="Your stock will decrease by this amount"
+          hint={
+            isOutOfStock
+              ? 'No stock available to sell'
+              : 'Your stock will decrease by this amount'
+          }
           error={errors.quantity?.message}
+          disabled={isOutOfStock || isLoading}
           {...register('quantity')}
         />
       </form>
@@ -176,22 +199,32 @@ export default function ProductsPage() {
     {
       key: 'title',
       header: 'Title',
-      render: (row) => <span className="font-medium text-slate-900">{row.title}</span>,
+      render: (row) => (
+        <span className='font-medium text-slate-900'>{row.title}</span>
+      ),
     },
     { key: 'sku', header: 'SKU', render: (row) => row.sku || '—' },
-    { key: 'price', header: 'Price', render: (row) => formatCurrency(row.price) },
+    {
+      key: 'price',
+      header: 'Price',
+      render: (row) => formatCurrency(row.price),
+    },
     ...(isAdmin
       ? [
           {
             key: 'description',
             header: 'Description',
             render: (row) => (
-              <span className="block max-w-xs truncate text-slate-500">
+              <span className='block max-w-xs truncate text-slate-500'>
                 {row.description || '—'}
               </span>
             ),
           },
-          { key: 'createdAt', header: 'Created', render: (row) => formatDate(row.createdAt) },
+          {
+            key: 'createdAt',
+            header: 'Created',
+            render: (row) => formatDate(row.createdAt),
+          },
         ]
       : [
           {
@@ -202,17 +235,19 @@ export default function ProductsPage() {
           {
             key: 'status',
             header: 'Status',
-            render: (row) => <StockStatusChip remainingStock={row.quantity ?? 0} />,
+            render: (row) => (
+              <StockStatusChip remainingStock={row.quantity ?? 0} />
+            ),
           },
         ]),
     {
       key: 'actions',
       header: 'Actions',
       render: (row) => (
-        <div className="flex items-center gap-1">
+        <div className='flex items-center gap-1'>
           <Button
-            variant="ghost"
-            size="sm"
+            variant='ghost'
+            size='sm'
             icon={Eye}
             onClick={() => {
               setViewing(row);
@@ -222,22 +257,27 @@ export default function ProductsPage() {
           {isAdmin ? (
             <>
               <Button
-                variant="ghost"
-                size="sm"
+                variant='ghost'
+                size='sm'
                 icon={Pencil}
                 onClick={() => {
                   setEditing(row);
                   setFormOpen(true);
                 }}
               />
-              <Button variant="ghost" size="sm" icon={Trash2} onClick={() => setDeleting(row)} />
+              <Button
+                variant='ghost'
+                size='sm'
+                icon={Trash2}
+                onClick={() => setDeleting(row)}
+              />
             </>
           ) : (
             <Button
-              variant="ghost"
-              size="sm"
+              variant='ghost'
+              size='sm'
               icon={ShoppingCart}
-              title="Record sale"
+              title='Record sale'
               onClick={() => setSellTarget(row)}
             />
           )}
@@ -257,13 +297,19 @@ export default function ProductsPage() {
   };
 
   if (status === 'failed' && !items.length) {
-    return <ErrorState title="Could not load products" description={error} onRetry={loadProducts} />;
+    return (
+      <ErrorState
+        title='Could not load products'
+        description={error}
+        onRetry={loadProducts}
+      />
+    );
   }
 
   return (
     <div>
       <PageHeader
-        title="Products"
+        title='Products'
         description={
           isAdmin
             ? 'Master catalog used when assigning stock to sellers'
@@ -284,21 +330,21 @@ export default function ProductsPage() {
         }
       />
 
-      <div className="mb-4 max-w-sm">
+      <div className='mb-4 max-w-sm'>
         <SearchBar
           value={filters.search}
-          placeholder="Search by title or SKU…"
+          placeholder='Search by title or SKU…'
           onSearch={(search) => updateFilters({ search, page: 1 })}
         />
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className='overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm'>
         <Table
           columns={columns}
           data={items}
           keyExtractor={(row) => row.id}
           isLoading={isLoading}
-          emptyTitle="No products yet"
+          emptyTitle='No products yet'
           emptyDescription={
             isAdmin
               ? 'Create your first catalog product.'
@@ -329,29 +375,40 @@ export default function ProductsPage() {
         isOpen={viewOpen}
         onClose={() => setViewOpen(false)}
         title={viewing?.title}
-        description="Product details"
+        status={
+          !isAdmin && viewing ? (
+            <AvailabilityStatus remainingStock={viewing.quantity ?? 0} />
+          ) : undefined
+        }
+        description='Product details'
       >
         {viewing && (
-          <dl className="grid gap-3 text-sm sm:grid-cols-2">
+          <dl className='grid gap-3 text-sm sm:grid-cols-2'>
             <div>
-              <dt className="text-slate-500">SKU</dt>
-              <dd className="font-medium text-slate-900">{viewing.sku || '—'}</dd>
+              <dt className='text-slate-500'>SKU</dt>
+              <dd className='font-medium text-slate-900'>
+                {viewing.sku || '—'}
+              </dd>
             </div>
             <div>
-              <dt className="text-slate-500">Price</dt>
-              <dd className="font-medium text-slate-900">{formatCurrency(viewing.price)}</dd>
+              <dt className='text-slate-500'>Price</dt>
+              <dd className='font-medium text-slate-900'>
+                {formatCurrency(viewing.price)}
+              </dd>
             </div>
             {!isAdmin && (
               <div>
-                <dt className="text-slate-500">Assigned qty</dt>
-                <dd className="font-medium text-slate-900">
+                <dt className='text-slate-500'>Assigned qty</dt>
+                <dd className='font-medium text-slate-900'>
                   {formatNumber(viewing.quantity ?? 0)}
                 </dd>
               </div>
             )}
-            <div className="sm:col-span-2">
-              <dt className="text-slate-500">Description</dt>
-              <dd className="mt-1 text-slate-700">{viewing.description || '—'}</dd>
+            <div className='sm:col-span-2'>
+              <dt className='text-slate-500'>Description</dt>
+              <dd className='mt-1 text-slate-700'>
+                {viewing.description || '—'}
+              </dd>
             </div>
           </dl>
         )}
@@ -364,7 +421,10 @@ export default function ProductsPage() {
         isLoading={isStockMutating}
         onSubmit={async (values) => {
           if (!sellTarget?.assignmentId) return;
-          const result = await recordSale(sellTarget.assignmentId, values.quantity);
+          const result = await recordSale(
+            sellTarget.assignmentId,
+            values.quantity,
+          );
           if (result.success) {
             setSellTarget(null);
             loadProducts();
@@ -375,9 +435,9 @@ export default function ProductsPage() {
       <ConfirmDialog
         isOpen={Boolean(deleting)}
         onClose={() => setDeleting(null)}
-        title="Delete product?"
+        title='Delete product?'
         description={`This will remove “${deleting?.title}” from the catalog.`}
-        confirmLabel="Delete"
+        confirmLabel='Delete'
         isLoading={isMutating}
         onConfirm={async () => {
           const result = await deleteProduct(deleting.id);

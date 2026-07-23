@@ -193,7 +193,7 @@ export default function DashboardPage() {
 
           <section className='rounded-xl border border-slate-200 bg-white shadow-sm'>
             <div className='flex items-center gap-2 border-b border-slate-200 px-5 py-4'>
-              <ShoppingCart className='size-4 text-slate-500' />
+              <ShoppingCart className='size-6 text-slate-500' />
               <div>
                 <h3 className='text-sm font-semibold text-slate-900'>
                   Recent sales
@@ -238,7 +238,7 @@ export default function DashboardPage() {
           tone='slate'
         />
         <StatCard
-          title='Total Sell'
+          title='Total Sales'
           value={formatCurrency(totals.revenue)}
           icon={DollarSign}
           tone='green'

@@ -19,6 +19,17 @@ export const fetchUsersThunk = createAsyncThunk(
   }
 );
 
+export const fetchUserByIdThunk = createAsyncThunk(
+  'users/fetchById',
+  async (id, { rejectWithValue }) => {
+    try {
+      return await usersService.getById(id);
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
 export const createUserThunk = createAsyncThunk('users/create', async (payload, { rejectWithValue }) => {
   try {
     return await usersService.create(payload);
@@ -51,9 +62,12 @@ const initialState = {
   items: [],
   meta: { page: 1, limit: appConfig.paginationDefaultLimit, total: 0, totalPages: 1 },
   filters: { page: 1, limit: appConfig.paginationDefaultLimit, search: '', role: '' },
+  current: null,
   status: 'idle',
+  detailStatus: 'idle',
   mutationStatus: 'idle',
   error: null,
+  detailError: null,
 };
 
 const usersSlice = createSlice({
@@ -62,6 +76,11 @@ const usersSlice = createSlice({
   reducers: {
     setUserFilters: (state, action) => {
       state.filters = { ...state.filters, ...action.payload };
+    },
+    clearCurrentUser: (state) => {
+      state.current = null;
+      state.detailStatus = 'idle';
+      state.detailError = null;
     },
   },
   extraReducers: (builder) => {
@@ -79,6 +98,21 @@ const usersSlice = createSlice({
         state.status = 'failed';
         state.error = action.payload?.message || 'Failed to load users';
       })
+
+      .addCase(fetchUserByIdThunk.pending, (state) => {
+        state.detailStatus = 'loading';
+        state.detailError = null;
+      })
+      .addCase(fetchUserByIdThunk.fulfilled, (state, action) => {
+        state.detailStatus = 'succeeded';
+        state.current = action.payload;
+      })
+      .addCase(fetchUserByIdThunk.rejected, (state, action) => {
+        state.detailStatus = 'failed';
+        state.current = null;
+        state.detailError = action.payload?.message || 'Failed to load user';
+      })
+
       .addCase(createUserThunk.pending, (state) => {
         state.mutationStatus = 'loading';
       })
@@ -88,17 +122,43 @@ const usersSlice = createSlice({
       .addCase(createUserThunk.rejected, (state) => {
         state.mutationStatus = 'failed';
       })
+
       .addCase(updateUserThunk.pending, (state) => {
         state.mutationStatus = 'loading';
       })
-      .addCase(updateUserThunk.fulfilled, (state) => {
+      .addCase(updateUserThunk.fulfilled, (state, action) => {
         state.mutationStatus = 'succeeded';
+        const updated = action.payload;
+        if (updated?.id) {
+          state.items = state.items.map((item) =>
+            item.id === updated.id ? { ...item, ...updated } : item
+          );
+          if (state.current?.id === updated.id) {
+            state.current = { ...state.current, ...updated };
+          }
+        }
       })
       .addCase(updateUserThunk.rejected, (state) => {
+        state.mutationStatus = 'failed';
+      })
+
+      .addCase(deleteUserThunk.pending, (state) => {
+        state.mutationStatus = 'loading';
+      })
+      .addCase(deleteUserThunk.fulfilled, (state, action) => {
+        state.mutationStatus = 'succeeded';
+        const id = action.payload;
+        state.items = state.items.filter((item) => item.id !== id);
+        if (state.current?.id === id) {
+          state.current = null;
+          state.detailStatus = 'idle';
+        }
+      })
+      .addCase(deleteUserThunk.rejected, (state) => {
         state.mutationStatus = 'failed';
       });
   },
 });
 
-export const { setUserFilters } = usersSlice.actions;
+export const { setUserFilters, clearCurrentUser } = usersSlice.actions;
 export default usersSlice.reducer;

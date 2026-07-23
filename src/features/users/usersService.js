@@ -6,6 +6,10 @@ export const usersService = {
     const { data } = await usersAPI.list(params);
     return unwrapList(data);
   },
+  async getById(id) {
+    const { data } = await usersAPI.getById(id);
+    return unwrapData(data);
+  },
   async create(payload) {
     const { data } = await usersAPI.create(payload);
     return unwrapData(data);

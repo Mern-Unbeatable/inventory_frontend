@@ -8,6 +8,7 @@ import ProductsPage from '@/pages/ProductsPage.jsx';
 import BranchesPage from '@/pages/BranchesPage.jsx';
 import CountriesPage from '@/pages/CountriesPage.jsx';
 import UsersPage from '@/pages/UsersPage.jsx';
+import UserDetailPage from '@/pages/UserDetailPage.jsx';
 import InventoryPage from '@/pages/InventoryPage.jsx';
 import ProfilePage from '@/pages/ProfilePage.jsx';
 import SettingsPage from '@/pages/SettingsPage.jsx';
@@ -31,6 +32,7 @@ export function AppRouter() {
             <Route path="/countries" element={<CountriesPage />} />
             <Route path="/branches" element={<BranchesPage />} />
             <Route path="/users" element={<UsersPage />} />
+            <Route path="/users/:id" element={<UserDetailPage />} />
           </Route>
         </Route>
       </Route>

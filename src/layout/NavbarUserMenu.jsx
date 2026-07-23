@@ -52,7 +52,7 @@ export function NavbarUserMenu() {
         aria-haspopup='menu'
       >
         <div className='flex size-9 items-center justify-center rounded-full bg-gradient-to-br from-primary-500 to-primary-600 text-sm font-semibold text-white shadow-sm ring-2 ring-primary-100 transition-all duration-200 hover:shadow-md'>
-          {getInitials(user?.name)}
+          <User className='size-5 text-white' />
         </div>
 
         <div className='hidden min-w-0 text-left sm:block'>
