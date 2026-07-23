@@ -28,7 +28,7 @@ export function Sidebar({ onNavigate }) {
 
   return (
     <aside className='flex h-full flex-col bg-slate-950 text-slate-100'>
-      <div className='flex gap-2.5 border-b border-slate-800 px-5 h-18 items-center justify-center'>
+      <div className='flex gap-2.5 border-b border-slate-800 px-5 h-18 items-center justify-start sm:justify-center'>
         <div className='flex size-9 items-center justify-center rounded-lg bg-primary-500'>
           <Boxes className='size-5 text-white' />
         </div>
