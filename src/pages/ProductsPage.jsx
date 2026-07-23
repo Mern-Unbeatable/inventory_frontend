@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button.jsx';
 import { Input } from '@/components/ui/Input.jsx';
 import { Textarea } from '@/components/ui/Textarea.jsx';
 import { Modal } from '@/components/ui/Modal.jsx';
+import { ImageUploadField } from '@/components/ui/ImageUploadField.jsx';
 import { ConfirmDialog } from '@/components/feedback/ConfirmDialog.jsx';
 import { ErrorState } from '@/components/ui/ErrorState.jsx';
 import { useAuth } from '@/features/auth/authHooks.js';
@@ -23,6 +24,7 @@ import {
 } from '@/components/ui/StatusChip.jsx';
 import { formatCurrency, formatNumber } from '@/utils/format/currency.js';
 import { formatDate } from '@/utils/format/date.js';
+import { resolveMediaUrl } from '@/utils/media/url.js';
 
 function ProductFormModal({ isOpen, onClose, product, onSubmit, isLoading }) {
   const {
@@ -35,6 +37,10 @@ function ProductFormModal({ isOpen, onClose, product, onSubmit, isLoading }) {
     defaultValues: { title: '', sku: '', description: '', price: 0 },
   });
 
+  const [imageFile, setImageFile] = useState(null);
+  const [removeImage, setRemoveImage] = useState(false);
+  const [imageError, setImageError] = useState(null);
+
   useEffect(() => {
     if (!isOpen) return;
     reset(
@@ -45,58 +51,90 @@ function ProductFormModal({ isOpen, onClose, product, onSubmit, isLoading }) {
             description: product.description || '',
             price: product.price ?? 0,
           }
-        : { title: '', sku: '', description: '', price: 0 },
+        : { title: '', sku: '', description: '', price: 0 }
     );
+    setImageFile(null);
+    setRemoveImage(false);
+    setImageError(null);
   }, [isOpen, product, reset]);
+
+  const existingImageUrl = removeImage ? null : product?.imageUrl || null;
+
+  const submit = handleSubmit((values) => {
+    setImageError(null);
+    onSubmit({
+      ...values,
+      ...(imageFile ? { image: imageFile } : {}),
+      ...(removeImage && !imageFile ? { removeImage: true } : {}),
+    });
+  });
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
       title={product ? 'Edit product' : 'Create product'}
-      description='Global master catalog item'
-      size='lg'
+      description="Global master catalog item"
+      size="lg"
       footer={
         <>
-          <Button variant='outline' onClick={onClose} disabled={isLoading}>
+          <Button variant="outline" onClick={onClose} disabled={isLoading}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit(onSubmit)} isLoading={isLoading}>
+          <Button onClick={submit} isLoading={isLoading}>
             {product ? 'Save changes' : 'Create product'}
           </Button>
         </>
       }
     >
-      <form
-        className='grid gap-4 sm:grid-cols-2'
-        onSubmit={handleSubmit(onSubmit)}
-      >
+      <form className="grid gap-4 sm:grid-cols-2" onSubmit={submit}>
+        <ImageUploadField
+          className="sm:col-span-2"
+          label="Product image"
+          valueFile={imageFile}
+          existingUrl={existingImageUrl}
+          disabled={isLoading}
+          error={imageError}
+          onChange={(file) => {
+            setImageError(null);
+            setImageFile(file);
+            if (file) setRemoveImage(false);
+          }}
+          onClearExisting={() => {
+            setImageFile(null);
+            setRemoveImage(true);
+          }}
+        />
         <Input
-          id='title'
-          label='Title'
-          containerClassName='sm:col-span-2'
+          id="title"
+          label="Title"
+          containerClassName="sm:col-span-2"
           error={errors.title?.message}
+          disabled={isLoading}
           {...register('title')}
         />
         <Input
-          id='sku'
-          label='SKU'
+          id="sku"
+          label="SKU"
           error={errors.sku?.message}
+          disabled={isLoading}
           {...register('sku')}
         />
         <Input
-          id='price'
-          label='Price'
-          type='number'
-          step='0.01'
+          id="price"
+          label="Price"
+          type="number"
+          step="0.01"
           error={errors.price?.message}
+          disabled={isLoading}
           {...register('price')}
         />
         <Textarea
-          id='description'
-          label='Description'
-          containerClassName='sm:col-span-2'
+          id="description"
+          label="Description"
+          containerClassName="sm:col-span-2"
           error={errors.description?.message}
+          disabled={isLoading}
           {...register('description')}
         />
       </form>
@@ -197,10 +235,28 @@ export default function ProductsPage() {
 
   const columns = [
     {
+      key: 'image',
+      header: '',
+      render: (row) => {
+        const src = resolveMediaUrl(row.imageUrl);
+        return src ? (
+          <img
+            src={src}
+            alt=""
+            className="size-10 rounded-lg object-cover ring-1 ring-slate-200"
+          />
+        ) : (
+          <div className="flex size-10 items-center justify-center rounded-lg bg-slate-100 text-xs text-slate-400">
+            —
+          </div>
+        );
+      },
+    },
+    {
       key: 'title',
       header: 'Title',
       render: (row) => (
-        <span className='font-medium text-slate-900'>{row.title}</span>
+        <span className="font-medium text-slate-900">{row.title}</span>
       ),
     },
     { key: 'sku', header: 'SKU', render: (row) => row.sku || '—' },
@@ -383,34 +439,43 @@ export default function ProductsPage() {
         description='Product details'
       >
         {viewing && (
-          <dl className='grid gap-3 text-sm sm:grid-cols-2'>
-            <div>
-              <dt className='text-slate-500'>SKU</dt>
-              <dd className='font-medium text-slate-900'>
-                {viewing.sku || '—'}
-              </dd>
-            </div>
-            <div>
-              <dt className='text-slate-500'>Price</dt>
-              <dd className='font-medium text-slate-900'>
-                {formatCurrency(viewing.price)}
-              </dd>
-            </div>
-            {!isAdmin && (
+          <div className="space-y-4">
+            {resolveMediaUrl(viewing.imageUrl) && (
+              <img
+                src={resolveMediaUrl(viewing.imageUrl)}
+                alt={viewing.title}
+                className="h-40 w-full rounded-xl object-cover ring-1 ring-slate-200"
+              />
+            )}
+            <dl className="grid gap-3 text-sm sm:grid-cols-2">
               <div>
-                <dt className='text-slate-500'>Assigned qty</dt>
-                <dd className='font-medium text-slate-900'>
-                  {formatNumber(viewing.quantity ?? 0)}
+                <dt className="text-slate-500">SKU</dt>
+                <dd className="font-medium text-slate-900">
+                  {viewing.sku || '—'}
                 </dd>
               </div>
-            )}
-            <div className='sm:col-span-2'>
-              <dt className='text-slate-500'>Description</dt>
-              <dd className='mt-1 text-slate-700'>
-                {viewing.description || '—'}
-              </dd>
-            </div>
-          </dl>
+              <div>
+                <dt className="text-slate-500">Price</dt>
+                <dd className="font-medium text-slate-900">
+                  {formatCurrency(viewing.price)}
+                </dd>
+              </div>
+              {!isAdmin && (
+                <div>
+                  <dt className="text-slate-500">Assigned qty</dt>
+                  <dd className="font-medium text-slate-900">
+                    {formatNumber(viewing.quantity ?? 0)}
+                  </dd>
+                </div>
+              )}
+              <div className="sm:col-span-2">
+                <dt className="text-slate-500">Description</dt>
+                <dd className="mt-1 text-slate-700">
+                  {viewing.description || '—'}
+                </dd>
+              </div>
+            </dl>
+          </div>
         )}
       </Modal>
 
