@@ -6,7 +6,9 @@ import {
   assignStockThunk,
   clearUserInventory,
   fetchInventoryThunk,
+  fetchTransactionsThunk,
   fetchUserInventoryThunk,
+  receiveStockThunk,
   sellStockThunk,
   setInventoryFilters,
   setQuantityThunk,
@@ -20,6 +22,10 @@ import {
   selectInventoryMutationStatus,
   selectInventoryStatus,
   selectInventorySummary,
+  selectInventoryTransactions,
+  selectInventoryTransactionsError,
+  selectInventoryTransactionsMeta,
+  selectInventoryTransactionsStatus,
   selectUserInventoryError,
   selectUserInventoryItems,
   selectUserInventoryStatus,
@@ -42,6 +48,10 @@ export const useInventory = () => {
   const userInventorySummary = useSelector(selectUserInventorySummary);
   const userInventoryStatus = useSelector(selectUserInventoryStatus);
   const userInventoryError = useSelector(selectUserInventoryError);
+  const transactions = useSelector(selectInventoryTransactions);
+  const transactionsMeta = useSelector(selectInventoryTransactionsMeta);
+  const transactionsStatus = useSelector(selectInventoryTransactionsStatus);
+  const transactionsError = useSelector(selectInventoryTransactionsError);
 
   const loadInventory = useCallback(() => {
     if (!user?.role) return;
@@ -133,6 +143,25 @@ export const useInventory = () => {
     [dispatch, user?.role]
   );
 
+  const receiveStock = useCallback(
+    async (id, quantity, reason) => {
+      const result = await dispatch(receiveStockThunk({ id, quantity, reason }));
+      if (receiveStockThunk.fulfilled.match(result)) {
+        toast.success(`Stock received (+${quantity})`);
+        dispatch(fetchInventoryThunk({ role: user.role }));
+        return { success: true, data: result.payload };
+      }
+      toast.error(result.payload?.message || 'Failed to record received stock');
+      return { success: false, error: result.payload };
+    },
+    [dispatch, user?.role]
+  );
+
+  const loadTransactions = useCallback(
+    (options) => dispatch(fetchTransactionsThunk(options)),
+    [dispatch]
+  );
+
   return {
     items,
     meta,
@@ -145,9 +174,14 @@ export const useInventory = () => {
     userInventorySummary,
     userInventoryStatus,
     userInventoryError,
+    transactions,
+    transactionsMeta,
+    transactionsStatus,
+    transactionsError,
     isAdmin,
     isLoading: status === 'loading',
     isUserInventoryLoading: userInventoryStatus === 'loading',
+    isTransactionsLoading: transactionsStatus === 'loading',
     isMutating: mutationStatus === 'loading',
     loadInventory,
     loadUserInventory,
@@ -157,6 +191,8 @@ export const useInventory = () => {
     setQuantity,
     adjustQuantity,
     recordSale,
+    receiveStock,
+    loadTransactions,
     unassignStock,
   };
 };

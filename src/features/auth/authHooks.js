@@ -17,7 +17,7 @@ import {
   selectIsBootstrapped,
   selectUser,
 } from './authSelectors.js';
-import { isAdmin, isSeller } from '@/utils/auth/auth.utils.js';
+import { isAdmin, isCustomer, isSeller } from '@/utils/auth/auth.utils.js';
 
 export const useAuth = () => {
   const dispatch = useDispatch();
@@ -100,6 +100,7 @@ export const useAuth = () => {
     error,
     isAdmin: isAdmin(user),
     isSeller: isSeller(user),
+    isCustomer: isCustomer(user),
     isWorker: isSeller(user),
     login,
     logout,

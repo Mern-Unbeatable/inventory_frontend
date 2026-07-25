@@ -1,0 +1,11 @@
+export const selectCustomerItems = (state) => state.customers.items;
+export const selectCustomerMeta = (state) => state.customers.meta;
+export const selectCustomerFilters = (state) => state.customers.filters;
+export const selectCurrentCustomer = (state) => state.customers.current;
+export const selectCustomersStatus = (state) => state.customers.status;
+export const selectCustomersDetailStatus = (state) => state.customers.detailStatus;
+export const selectCustomersMutationStatus = (state) => state.customers.mutationStatus;
+export const selectCustomersError = (state) => state.customers.error;
+export const selectCustomersDetailError = (state) => state.customers.detailError;
+export const selectCustomerInvoices = (state) => state.customers.invoices;
+export const selectCustomerPurchaseHistory = (state) => state.customers.purchaseHistory;

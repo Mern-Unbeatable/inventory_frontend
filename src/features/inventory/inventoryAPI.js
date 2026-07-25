@@ -11,5 +11,12 @@ export const inventoryAPI = {
     apiClient.patch(HTTP_ENDPOINTS.INVENTORY.QUANTITY(id), payload),
   adjust: (id, payload) => apiClient.patch(HTTP_ENDPOINTS.INVENTORY.ADJUST(id), payload),
   sell: (id, payload) => apiClient.post(HTTP_ENDPOINTS.INVENTORY.SELL(id), payload),
+  receive: (id, payload) => apiClient.post(HTTP_ENDPOINTS.INVENTORY.RECEIVE(id), payload),
+  transactions: (id, params) =>
+    apiClient.get(HTTP_ENDPOINTS.INVENTORY.TRANSACTIONS(id), { params }),
+  myTransactions: (params) =>
+    apiClient.get(HTTP_ENDPOINTS.INVENTORY.TRANSACTIONS_ME, { params }),
+  allTransactions: (params) =>
+    apiClient.get(HTTP_ENDPOINTS.INVENTORY.TRANSACTIONS_ALL, { params }),
   unassign: (id) => apiClient.delete(HTTP_ENDPOINTS.INVENTORY.BY_ID(id)),
 };

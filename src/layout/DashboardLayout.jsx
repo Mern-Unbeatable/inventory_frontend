@@ -1,14 +1,16 @@
 import { useMemo, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Drawer } from '@/components/ui/Drawer.jsx';
-import { Sidebar } from './Sidebar.jsx';
-import { Navbar } from './Navbar.jsx';
+import { Sidebar } from '@/components/navigation/Sidebar.jsx';
+import { Navbar } from '@/components/navigation/Navbar.jsx';
 import { Footer } from './Footer.jsx';
 
 const TITLE_MAP = {
   '/dashboard': 'Dashboard',
   '/products': 'Products',
   '/inventory': 'Inventory',
+  '/customers': 'Customers',
+  '/invoices': 'Invoices',
   '/branches': 'Branches',
   '/countries': 'Countries',
   '/users': 'Users',

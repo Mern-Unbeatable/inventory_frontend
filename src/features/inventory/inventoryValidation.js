@@ -20,3 +20,8 @@ export const adjustQuantitySchema = z.object({
 export const sellStockSchema = z.object({
   quantity: z.coerce.number().int().positive('Sold quantity must be at least 1'),
 });
+
+export const receiveStockSchema = z.object({
+  quantity: z.coerce.number().int().positive('Received quantity must be at least 1'),
+  reason: z.string().max(500).optional().or(z.literal('')),
+});

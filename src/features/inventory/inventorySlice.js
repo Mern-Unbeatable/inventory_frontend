@@ -96,6 +96,30 @@ export const sellStockThunk = createAsyncThunk(
   }
 );
 
+export const receiveStockThunk = createAsyncThunk(
+  'inventory/receive',
+  async ({ id, quantity, reason }, { rejectWithValue }) => {
+    try {
+      return await inventoryService.receive(id, quantity, reason);
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const fetchTransactionsThunk = createAsyncThunk(
+  'inventory/fetchTransactions',
+  async ({ scope, id, params } = {}, { rejectWithValue }) => {
+    try {
+      if (scope === 'row') return await inventoryService.transactions(id, params);
+      if (scope === 'all') return await inventoryService.allTransactions(params);
+      return await inventoryService.myTransactions(params);
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
 export const unassignStockThunk = createAsyncThunk(
   'inventory/unassign',
   async (id, { rejectWithValue }) => {
@@ -140,6 +164,12 @@ const initialState = {
     userId: null,
     items: [],
     summary: null,
+    status: 'idle',
+    error: null,
+  },
+  transactions: {
+    items: [],
+    meta: { page: 1, limit: appConfig.paginationDefaultLimit, total: 0, totalPages: 1 },
     status: 'idle',
     error: null,
   },
@@ -239,6 +269,29 @@ const inventorySlice = createSlice({
         state.userInventory.items = state.userInventory.items.filter(
           (item) => item.id !== action.payload
         );
+      })
+      .addCase(receiveStockThunk.pending, (state) => {
+        state.mutationStatus = 'loading';
+      })
+      .addCase(receiveStockThunk.fulfilled, (state) => {
+        state.mutationStatus = 'succeeded';
+      })
+      .addCase(receiveStockThunk.rejected, (state) => {
+        state.mutationStatus = 'failed';
+      })
+      .addCase(fetchTransactionsThunk.pending, (state) => {
+        state.transactions.status = 'loading';
+        state.transactions.error = null;
+      })
+      .addCase(fetchTransactionsThunk.fulfilled, (state, action) => {
+        state.transactions.status = 'succeeded';
+        state.transactions.items = action.payload.items;
+        state.transactions.meta = action.payload.meta;
+      })
+      .addCase(fetchTransactionsThunk.rejected, (state, action) => {
+        state.transactions.status = 'failed';
+        state.transactions.error =
+          action.payload?.message || 'Failed to load transaction history';
       });
   },
 });

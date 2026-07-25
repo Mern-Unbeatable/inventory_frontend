@@ -34,8 +34,29 @@ export const HTTP_ENDPOINTS = {
     QUANTITY: (id) => `/inventory/${id}/quantity`,
     ADJUST: (id) => `/inventory/${id}/adjust`,
     SELL: (id) => `/inventory/${id}/sell`,
+    RECEIVE: (id) => `/inventory/${id}/receive`,
+    TRANSACTIONS: (id) => `/inventory/${id}/transactions`,
+    TRANSACTIONS_ME: '/inventory/transactions/me',
+    TRANSACTIONS_ALL: '/inventory/transactions',
   },
   DASHBOARD: {
     OVERVIEW: '/dashboard/overview',
+  },
+  CUSTOMERS: {
+    BASE: '/customers',
+    BY_ID: (id) => `/customers/${id}`,
+    INVOICES: (id) => `/customers/${id}/invoices`,
+    PURCHASE_HISTORY: (id) => `/customers/${id}/purchase-history`,
+    PORTAL_ACCOUNT: (id) => `/customers/${id}/portal-account`,
+  },
+  INVOICES: {
+    BASE: '/invoices',
+    BY_ID: (id) => `/invoices/${id}`,
+    CONFIRM: (id) => `/invoices/${id}/confirm`,
+    CANCEL: (id) => `/invoices/${id}/cancel`,
+  },
+  PAYMENTS: {
+    BASE: '/payments',
+    BY_ID: (id) => `/payments/${id}`,
   },
 };

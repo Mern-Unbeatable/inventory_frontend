@@ -1,10 +1,12 @@
 export const ROLES = {
   ADMIN: 'ADMIN',
   SELLER: 'SELLER',
+  CUSTOMER: 'CUSTOMER',
 };
 
 export const isAdmin = (user) => user?.role === ROLES.ADMIN;
 export const isSeller = (user) => user?.role === ROLES.SELLER;
+export const isCustomer = (user) => user?.role === ROLES.CUSTOMER;
 /** @deprecated use isSeller — kept as alias for gradual migration */
 export const isWorker = isSeller;
 

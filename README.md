@@ -31,10 +31,13 @@ Default API: `http://localhost:5000/api`
 
 ### Seed credentials (from API seed)
 
-| Role   | Email                        | Password      |
-|--------|------------------------------|---------------|
-| Admin  | `admin@inventory.com`        | `Admin@12345` |
-| Seller | `seller.addis@inventory.com` | `Seller@12345`|
+| Role   | Email                              | Password       |
+|--------|-------------------------------------|----------------|
+| Admin  | `admin@inventory.com`               | `Admin@12345`  |
+| Seller | `seller.addis@inventory.com`        | `Seller@12345` |
+| Seller | `seller.hawassa@inventory.com`      | `Seller@12345` |
+| Seller | `seller.dhaka@inventory.com`        | `Seller@12345` |
+| Seller | `seller.chittagong@inventory.com`   | `Seller@12345` |
 
 ## Roles
 

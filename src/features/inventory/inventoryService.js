@@ -42,6 +42,26 @@ export const inventoryService = {
     return unwrapData(data);
   },
 
+  async receive(id, quantity, reason) {
+    const { data } = await inventoryAPI.receive(id, { quantity, reason });
+    return unwrapData(data);
+  },
+
+  async transactions(id, params) {
+    const { data } = await inventoryAPI.transactions(id, params);
+    return unwrapList(data);
+  },
+
+  async myTransactions(params) {
+    const { data } = await inventoryAPI.myTransactions(params);
+    return unwrapList(data);
+  },
+
+  async allTransactions(params) {
+    const { data } = await inventoryAPI.allTransactions(params);
+    return unwrapList(data);
+  },
+
   async unassign(id) {
     const { data } = await inventoryAPI.unassign(id);
     return unwrapData(data);

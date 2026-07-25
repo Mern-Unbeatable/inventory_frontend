@@ -1,43 +1,46 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { DashboardLayout } from '@/layout/DashboardLayout.jsx';
 import { ProtectedRoute } from './ProtectedRoute.jsx';
-import { RoleRoute } from './RoleRoute.jsx';
-import LoginPage from '@/pages/LoginPage.jsx';
-import DashboardPage from '@/pages/DashboardPage.jsx';
-import ProductsPage from '@/pages/ProductsPage.jsx';
-import BranchesPage from '@/pages/BranchesPage.jsx';
-import CountriesPage from '@/pages/CountriesPage.jsx';
-import UsersPage from '@/pages/UsersPage.jsx';
-import UserDetailPage from '@/pages/UserDetailPage.jsx';
-import InventoryPage from '@/pages/InventoryPage.jsx';
-import ProfilePage from '@/pages/ProfilePage.jsx';
-import SettingsPage from '@/pages/SettingsPage.jsx';
-import { ROLES } from '@/utils/auth/auth.utils.js';
+import LoginPage from '@/pages/auth/LoginPage.jsx';
+import { sharedRoutes } from './routes/shared.routes.jsx';
+import { sellerRoutes } from './routes/seller.routes.jsx';
+import { adminRoutes } from './routes/admin.routes.jsx';
 
+/**
+ * App router — grouped by access level.
+ *
+ * | Group        | Who                         | Paths                                      |
+ * |--------------|-----------------------------|--------------------------------------------|
+ * | Auth         | Public                      | /login                                     |
+ * | Shared       | Any authenticated role      | /dashboard, /products, /profile, /settings |
+ * | Seller/Staff | ADMIN + SELLER              | /inventory, /customers, /invoices          |
+ * | Admin        | ADMIN only                  | /countries, /branches, /users              |
+ *
+ * URL paths are unchanged for backward compatibility.
+ */
 export function AppRouter() {
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
+      {/* ── Auth (public) ─────────────────────────────────────────── */}
+      <Route path='/login' element={<LoginPage />} />
 
+      {/* ── Authenticated shell ───────────────────────────────────── */}
       <Route element={<ProtectedRoute />}>
         <Route element={<DashboardLayout />}>
-          <Route index element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/products" element={<ProductsPage />} />
-          <Route path="/inventory" element={<InventoryPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/settings" element={<SettingsPage />} />
+          <Route index element={<Navigate to='/dashboard' replace />} />
 
-          <Route element={<RoleRoute roles={[ROLES.ADMIN]} />}>
-            <Route path="/countries" element={<CountriesPage />} />
-            <Route path="/branches" element={<BranchesPage />} />
-            <Route path="/users" element={<UsersPage />} />
-            <Route path="/users/:id" element={<UserDetailPage />} />
-          </Route>
+          {/* Shared — any authenticated role */}
+          {sharedRoutes}
+
+          {/* Seller / Staff — ADMIN + SELLER */}
+          {sellerRoutes}
+
+          {/* Admin only */}
+          {adminRoutes}
         </Route>
       </Route>
 
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route path='*' element={<Navigate to='/dashboard' replace />} />
     </Routes>
   );
 }
