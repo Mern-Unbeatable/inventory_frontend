@@ -17,23 +17,51 @@ import { useAuth } from '@/features/auth/authHooks.js';
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/products', label: 'Products', icon: Package },
-  { to: '/inventory', label: 'Inventory', icon: Warehouse, customerHidden: true },
-  { to: '/customers', label: 'Customers', icon: UsersRound, customerHidden: true },
+  {
+    to: '/inventory',
+    label: 'Inventory',
+    icon: Warehouse,
+    customerHidden: true,
+  },
+  {
+    to: '/customers',
+    label: 'Customers',
+    icon: UsersRound,
+    customerHidden: true,
+  },
   { to: '/invoices', label: 'Invoices', icon: FileText, customerHidden: true },
-  { to: '/countries', label: 'Countries', icon: Globe2, adminOnly: true, customerHidden: true },
-  { to: '/branches', label: 'Branches', icon: Building2, adminOnly: true, customerHidden: true },
-  { to: '/users', label: 'Users', icon: Users, adminOnly: true, customerHidden: true },
+  {
+    to: '/countries',
+    label: 'Countries',
+    icon: Globe2,
+    adminOnly: true,
+    customerHidden: true,
+  },
+  {
+    to: '/branches',
+    label: 'Branches',
+    icon: Building2,
+    adminOnly: true,
+    customerHidden: true,
+  },
+  {
+    to: '/users',
+    label: 'Users',
+    icon: Users,
+    adminOnly: true,
+    customerHidden: true,
+  },
 ];
 
 export function Sidebar({ onNavigate }) {
   const { isAdmin, isCustomer, logout } = useAuth();
 
   const items = NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin).filter(
-    (item) => !item.customerHidden || !isCustomer
+    (item) => !item.customerHidden || !isCustomer,
   );
 
   return (
-    <aside className='flex h-full flex-col bg-slate-950 text-slate-100'>
+    <aside className='flex h-full flex-col bg-slate-900 text-slate-100'>
       <div className='flex gap-2.5 border-b border-slate-800 px-5 h-18 items-center justify-start sm:justify-center'>
         <div className='flex size-9 items-center justify-center rounded-lg bg-primary-500'>
           <Boxes className='size-5 text-white' />

@@ -3,7 +3,7 @@ import { Loader2 } from 'lucide-react';
 
 const VARIANT_CLASSES = {
   primary:
-    'bg-primary-600 text-white hover:bg-primary-700 focus-visible:outline-primary-600',
+    'bg-slate-800 text-white hover:bg-slate-700 focus-visible:outline-slate-600',
   secondary:
     'bg-slate-100 text-slate-700 hover:bg-slate-200 focus-visible:outline-slate-400',
   outline:

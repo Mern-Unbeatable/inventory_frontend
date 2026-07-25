@@ -185,13 +185,13 @@ export default function DashboardPage() {
 
       <div className='mt-6 grid gap-6 lg:grid-cols-2'>
         <section className='overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm'>
-          <div className='flex items-center gap-2 border-b bg-slate-900 border-slate-200 px-4 py-4 sm:px-5'>
+          <div className='flex items-center gap-2 border-b bg-white  border-slate-600 px-4 py-4 sm:px-5'>
             <Globe2 className='size-5 shrink-0 text-slate-500 sm:size-6' />
             <div className='min-w-0'>
-              <h3 className='text-sm font-semibold text-slate-100'>
+              <h3 className='text-sm font-semibold text-slate-800'>
                 Stock & revenue by country
               </h3>
-              <p className='text-xs text-slate-200'>
+              <p className='text-xs text-slate-600'>
                 Revenue updates when sellers record sales
               </p>
             </div>
@@ -207,13 +207,13 @@ export default function DashboardPage() {
         </section>
 
         <section className='overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm'>
-          <div className='flex items-center gap-2 border-b bg-slate-900 border-slate-200 px-4 py-4 sm:px-5'>
+          <div className='flex items-center gap-2 border-b bg-white  border-slate-600 px-4 py-4 sm:px-5'>
             <TrendingUp className='size-5 shrink-0 text-slate-500 sm:size-6' />
             <div className='min-w-0'>
-              <h3 className='text-sm font-semibold text-slate-100'>
+              <h3 className='text-sm font-semibold text-slate-800'>
                 Top selling products
               </h3>
-              <p className='text-xs text-slate-200'>
+              <p className='text-xs text-slate-600'>
                 Ranked by units sold across all sellers
               </p>
             </div>
@@ -250,13 +250,13 @@ export default function DashboardPage() {
         </section>
 
         <section className='overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm lg:col-span-2'>
-          <div className='flex items-center gap-2 border-b bg-slate-900 border-slate-200 px-4 py-4 sm:px-5'>
+          <div className='flex items-center gap-2 border-b bg-white  border-slate-600 px-4 py-4 sm:px-5'>
             <ShoppingCart className='size-5 shrink-0 text-slate-500 sm:size-6' />
             <div className='min-w-0'>
-              <h3 className='text-sm font-semibold text-slate-100'>
+              <h3 className='text-sm font-semibold text-slate-800'>
                 Recent sales
               </h3>
-              <p className='text-xs text-slate-200'>
+              <p className='text-xs text-slate-600'>
                 Latest seller stock deductions
               </p>
             </div>

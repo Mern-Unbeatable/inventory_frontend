@@ -39,7 +39,7 @@ function CustomerFormModal({ isOpen, onClose, customer, onSubmit, isLoading }) {
             address: customer.address || '',
             notes: customer.notes || '',
           }
-        : { name: '', email: '', phone: '', address: '', notes: '' }
+        : { name: '', email: '', phone: '', address: '', notes: '' },
     );
   }, [isOpen, customer, reset]);
 
@@ -48,11 +48,11 @@ function CustomerFormModal({ isOpen, onClose, customer, onSubmit, isLoading }) {
       isOpen={isOpen}
       onClose={onClose}
       title={customer ? 'Edit customer' : 'Add customer'}
-      description="CRM contact used for invoicing"
-      size="lg"
+      description='CRM contact used for invoicing'
+      size='lg'
       footer={
         <>
-          <Button variant="outline" onClick={onClose} disabled={isLoading}>
+          <Button variant='outline' onClick={onClose} disabled={isLoading}>
             Cancel
           </Button>
           <Button onClick={handleSubmit(onSubmit)} isLoading={isLoading}>
@@ -61,42 +61,45 @@ function CustomerFormModal({ isOpen, onClose, customer, onSubmit, isLoading }) {
         </>
       }
     >
-      <form className="grid gap-4 sm:grid-cols-2" onSubmit={handleSubmit(onSubmit)}>
+      <form
+        className='grid gap-4 sm:grid-cols-2'
+        onSubmit={handleSubmit(onSubmit)}
+      >
         <Input
-          id="name"
-          label="Name"
-          containerClassName="sm:col-span-2"
+          id='name'
+          label='Name'
+          containerClassName='sm:col-span-2'
           error={errors.name?.message}
           disabled={isLoading}
           {...register('name')}
         />
         <Input
-          id="email"
-          label="Email"
-          type="email"
+          id='email'
+          label='Email'
+          type='email'
           error={errors.email?.message}
           disabled={isLoading}
           {...register('email')}
         />
         <Input
-          id="phone"
-          label="Phone"
+          id='phone'
+          label='Phone'
           error={errors.phone?.message}
           disabled={isLoading}
           {...register('phone')}
         />
         <Textarea
-          id="address"
-          label="Address"
-          containerClassName="sm:col-span-2"
+          id='address'
+          label='Address'
+          containerClassName='sm:col-span-2'
           error={errors.address?.message}
           disabled={isLoading}
           {...register('address')}
         />
         <Textarea
-          id="notes"
-          label="Notes"
-          containerClassName="sm:col-span-2"
+          id='notes'
+          label='Notes'
+          containerClassName='sm:col-span-2'
           error={errors.notes?.message}
           disabled={isLoading}
           {...register('notes')}
@@ -139,8 +142,8 @@ export default function CustomersPage() {
       className: 'min-w-[10rem] max-w-[14rem] whitespace-normal',
       render: (row) => (
         <button
-          type="button"
-          className="truncate text-left font-medium text-primary-600 hover:text-primary-700"
+          type='button'
+          className='truncate text-left font-medium text-primary-600 hover:text-primary-700'
           onClick={() => navigate(`/customers/${row.id}`)}
         >
           {row.name}
@@ -152,9 +155,11 @@ export default function CustomersPage() {
       header: 'Contact',
       className: 'min-w-[10rem]',
       render: (row) => (
-        <div className="min-w-0">
-          <p className="truncate text-slate-700">{row.email || '—'}</p>
-          <p className="truncate text-xs text-slate-500">{row.phone || 'No phone'}</p>
+        <div className='min-w-0'>
+          <p className='truncate text-slate-700'>{row.email || '—'}</p>
+          <p className='truncate text-xs text-slate-500'>
+            {row.phone || 'No phone'}
+          </p>
         </div>
       ),
     },
@@ -172,19 +177,19 @@ export default function CustomersPage() {
       header: 'Actions',
       sticky: 'right',
       render: (row) => (
-        <div className="flex items-center gap-0.5 sm:gap-1">
+        <div className='flex items-center gap-0.5 sm:gap-1'>
           <Button
-            variant="ghost"
-            size="sm"
+            variant='ghost'
+            size='sm'
             icon={Eye}
-            title="View"
+            title='View'
             onClick={() => navigate(`/customers/${row.id}`)}
           />
           <Button
-            variant="ghost"
-            size="sm"
+            variant='ghost'
+            size='sm'
             icon={Pencil}
-            title="Edit"
+            title='Edit'
             onClick={() => {
               setEditing(row);
               setFormOpen(true);
@@ -192,10 +197,10 @@ export default function CustomersPage() {
           />
           {isAdmin && (
             <Button
-              variant="ghost"
-              size="sm"
+              variant='ghost'
+              size='sm'
               icon={Trash2}
-              title="Delete"
+              title='Delete'
               onClick={() => setDeleting(row)}
             />
           )}
@@ -217,7 +222,7 @@ export default function CustomersPage() {
   if (status === 'failed' && !items.length) {
     return (
       <ErrorState
-        title="Could not load customers"
+        title='Could not load customers'
         description={error}
         onRetry={loadCustomers}
       />
@@ -227,8 +232,8 @@ export default function CustomersPage() {
   return (
     <div>
       <PageHeader
-        title="Customers"
-        description="CRM contacts used for invoicing — optionally linked to a portal login"
+        title='Customers'
+        description='CRM contacts used for invoicing — optionally linked to a portal login'
         actions={
           <Button
             icon={Plus}
@@ -242,23 +247,23 @@ export default function CustomersPage() {
         }
       />
 
-      <div className="mb-4 max-w-sm">
+      <div className='mb-4 max-w-sm'>
         <SearchBar
           value={filters.search}
-          placeholder="Search by name, email, or phone…"
+          placeholder='Search by name, email, or phone…'
           onSearch={(search) => updateFilters({ search, page: 1 })}
         />
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className='border border-slate-200 rounded-xl bg-white'>
         <Table
           columns={columns}
           data={items}
           keyExtractor={(row) => row.id}
           isLoading={isLoading}
-          minWidthClassName="min-w-[42rem]"
-          emptyTitle="No customers yet"
-          emptyDescription="Add your first customer to start creating invoices."
+          minWidthClassName='min-w-[42rem]'
+          emptyTitle='No customers yet'
+          emptyDescription='Add your first customer to start creating invoices.'
         />
         <Pagination
           page={meta.page}
@@ -283,9 +288,9 @@ export default function CustomersPage() {
       <ConfirmDialog
         isOpen={Boolean(deleting)}
         onClose={() => setDeleting(null)}
-        title="Delete customer?"
+        title='Delete customer?'
         description={`This removes "${deleting?.name}" — blocked if they have existing invoices.`}
-        confirmLabel="Delete"
+        confirmLabel='Delete'
         isLoading={isMutating}
         onConfirm={async () => {
           const result = await deleteCustomer(deleting.id);
