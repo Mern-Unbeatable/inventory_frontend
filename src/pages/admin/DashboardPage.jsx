@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import {
   AlertTriangle,
   Boxes,
@@ -15,13 +16,70 @@ import {
 import { PageHeader } from '@/components/common/PageHeader.jsx';
 import { StatCard } from '@/components/cards/StatCard.jsx';
 import { Table } from '@/components/tables/Table.jsx';
+import { ErrorState } from '@/components/ui/ErrorState.jsx';
+import { Loader } from '@/components/ui/Loader.jsx';
+import { useDashboard } from '@/features/dashboard/dashboardHooks.js';
 import { formatCurrency, formatNumber } from '@/utils/format/currency.js';
+import { formatDateTime } from '@/utils/format/date.js';
 
-/**
- * ADMIN dashboard view — extracted from DashboardPage for maintainability.
- * UI and data shape unchanged.
- */
-export function AdminDashboard({ data, totals, saleColumns }) {
+export default function DashboardPage() {
+  const { data, status, error, isLoading, loadDashboard } = useDashboard();
+
+  useEffect(() => {
+    loadDashboard();
+  }, [loadDashboard]);
+
+  if (isLoading && !data) return <Loader label='Loading dashboard…' />;
+  if (status === 'failed') {
+    return (
+      <ErrorState
+        title='Could not load dashboard'
+        description={error}
+        onRetry={loadDashboard}
+      />
+    );
+  }
+
+  const totals = data?.totals || {};
+
+  const saleColumns = [
+    {
+      key: 'product',
+      header: 'Product',
+      render: (row) => row.product?.title || '—',
+    },
+    {
+      key: 'sku',
+      header: 'SKU',
+      render: (row) => row.product?.sku || '—',
+    },
+    {
+      key: 'seller',
+      header: 'Seller',
+      render: (row) => row.user?.name || '—',
+    },
+    {
+      key: 'quantity',
+      header: 'Sold qty',
+      render: (row) => formatNumber(row.quantity),
+    },
+    {
+      key: 'unitPrice',
+      header: 'Unit price',
+      render: (row) => formatCurrency(row.unitPrice),
+    },
+    {
+      key: 'revenue',
+      header: 'Sales',
+      render: (row) => formatCurrency(row.revenue),
+    },
+    {
+      key: 'createdAt',
+      header: 'Date',
+      render: (row) => formatDateTime(row.createdAt),
+    },
+  ];
+
   const countryColumns = [
     { key: 'name', header: 'Country', render: (row) => row.name },
     { key: 'code', header: 'Code', render: (row) => row.code || '—' },

@@ -6,10 +6,10 @@ export function ProtectedRoute() {
   const { isAuthenticated, isBootstrapped } = useAuth();
   const location = useLocation();
 
-  if (!isBootstrapped) return <FullPageLoader label="Checking session…" />;
+  if (!isBootstrapped) return <FullPageLoader label='Checking session…' />;
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace state={{ from: location }} />;
+    return <Navigate to='/login' replace state={{ from: location }} />;
   }
 
   return <Outlet />;

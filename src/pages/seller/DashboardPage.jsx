@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import {
   AlertTriangle,
   Boxes,
@@ -10,13 +11,65 @@ import {
 import { PageHeader } from '@/components/common/PageHeader.jsx';
 import { StatCard } from '@/components/cards/StatCard.jsx';
 import { Table } from '@/components/tables/Table.jsx';
+import { ErrorState } from '@/components/ui/ErrorState.jsx';
+import { Loader } from '@/components/ui/Loader.jsx';
+import { useDashboard } from '@/features/dashboard/dashboardHooks.js';
 import { formatCurrency, formatNumber } from '@/utils/format/currency.js';
+import { formatDateTime } from '@/utils/format/date.js';
 
-/**
- * SELLER dashboard view — extracted from DashboardPage for maintainability.
- * UI and data shape unchanged.
- */
-export function SellerDashboard({ data, totals, saleColumns }) {
+export default function DashboardPage() {
+  const { data, status, error, isLoading, loadDashboard } = useDashboard();
+
+  useEffect(() => {
+    loadDashboard();
+  }, [loadDashboard]);
+
+  if (isLoading && !data) return <Loader label='Loading dashboard…' />;
+  if (status === 'failed') {
+    return (
+      <ErrorState
+        title='Could not load dashboard'
+        description={error}
+        onRetry={loadDashboard}
+      />
+    );
+  }
+
+  const totals = data?.totals || {};
+
+  const saleColumns = [
+    {
+      key: 'product',
+      header: 'Product',
+      render: (row) => row.product?.title || '—',
+    },
+    {
+      key: 'sku',
+      header: 'SKU',
+      render: (row) => row.product?.sku || '—',
+    },
+    {
+      key: 'quantity',
+      header: 'Sold qty',
+      render: (row) => formatNumber(row.quantity),
+    },
+    {
+      key: 'unitPrice',
+      header: 'Unit price',
+      render: (row) => formatCurrency(row.unitPrice),
+    },
+    {
+      key: 'revenue',
+      header: 'Sales',
+      render: (row) => formatCurrency(row.revenue),
+    },
+    {
+      key: 'createdAt',
+      header: 'Date',
+      render: (row) => formatDateTime(row.createdAt),
+    },
+  ];
+
   return (
     <div>
       <PageHeader
@@ -80,15 +133,14 @@ export function SellerDashboard({ data, totals, saleColumns }) {
             </p>
           </div>
         </div>
-        <div className='overflow-x-auto p-3 sm:p-4'>
-          <Table
-            columns={saleColumns}
-            data={data?.recentSales || []}
-            keyExtractor={(row) => row.id}
-            emptyTitle='No sales yet'
-            emptyDescription='Record a sale from Inventory or Products to build revenue.'
-          />
-        </div>
+
+        <Table
+          columns={saleColumns}
+          data={data?.recentSales || []}
+          keyExtractor={(row) => row.id}
+          emptyTitle='No sales yet'
+          emptyDescription='Record a sale from Inventory or Products to build revenue.'
+        />
       </section>
     </div>
   );

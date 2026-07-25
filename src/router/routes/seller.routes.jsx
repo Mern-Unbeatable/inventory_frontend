@@ -1,18 +1,17 @@
 import { Route } from 'react-router-dom';
-import { RoleRoute } from '../RoleRoute.jsx';
-import InventoryPage from '@/pages/inventory/InventoryPage.jsx';
-import CustomersPage from '@/pages/customers/CustomersPage.jsx';
-import CustomerDetailPage from '@/pages/customers/CustomerDetailPage.jsx';
-import InvoicesPage from '@/pages/invoices/InvoicesPage.jsx';
-import InvoiceDetailPage from '@/pages/invoices/InvoiceDetailPage.jsx';
-import { ROLES } from '@/utils/auth/auth.utils.js';
+import { RoleRoute } from '@/router/RoleRoute.jsx';
+import InventoryPage from '@/pages/seller/InventoryPage.jsx';
+import CustomersPage from '@/pages/seller/CustomersPage.jsx';
+import CustomerDetailPage from '@/pages/seller/CustomerDetailPage.jsx';
+import InvoicesPage from '@/pages/seller/InvoicesPage.jsx';
+import InvoiceDetailPage from '@/pages/seller/InvoiceDetailPage.jsx';
 
 /**
- * Staff routes — ADMIN and SELLER.
- * URLs unchanged: /inventory, /customers, /invoices.
+ * Staff routes for ADMIN + SELLER (inventory ops, customers, invoices).
+ * Page modules live under `pages/seller/` — one real file each.
  */
 export const sellerRoutes = (
-  <Route element={<RoleRoute roles={[ROLES.ADMIN, ROLES.SELLER]} />}>
+  <Route element={<RoleRoute roles={['ADMIN', 'SELLER']} />}>
     <Route path='/inventory' element={<InventoryPage />} />
     <Route path='/customers' element={<CustomersPage />} />
     <Route path='/customers/:id' element={<CustomerDetailPage />} />

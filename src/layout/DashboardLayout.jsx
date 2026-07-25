@@ -3,7 +3,6 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { Drawer } from '@/components/ui/Drawer.jsx';
 import { Sidebar } from '@/components/navigation/Sidebar.jsx';
 import { Navbar } from '@/components/navigation/Navbar.jsx';
-import { Footer } from './Footer.jsx';
 
 const TITLE_MAP = {
   '/dashboard': 'Dashboard',
@@ -46,7 +45,6 @@ export function DashboardLayout() {
         <main className='flex-1 px-4 py-6 sm:px-6 lg:px-8'>
           <Outlet />
         </main>
-        {/* <Footer /> */}
       </div>
     </div>
   );
