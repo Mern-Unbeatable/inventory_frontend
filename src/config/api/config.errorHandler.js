@@ -11,9 +11,19 @@ import {
 /**
  * Normalizes Axios/network errors into { statusCode, message, details }.
  * Backend envelope: { success, message, errors? }
+ * Supports JSON error bodies returned as Blob (e.g. PDF download failures).
  */
-export const normalizeError = (error) => {
-  const body = error?.response?.data;
+export const normalizeError = async (error) => {
+  let body = error?.response?.data;
+
+  if (typeof Blob !== 'undefined' && body instanceof Blob) {
+    try {
+      const text = await body.text();
+      body = text ? JSON.parse(text) : null;
+    } catch {
+      body = null;
+    }
+  }
 
   return {
     statusCode: body?.statusCode || error?.response?.status || 0,
@@ -80,7 +90,7 @@ export const attachResponseErrorHandler = (client) => {
       );
 
       if (response?.status !== 401 || isAuthFreePath || config._retried) {
-        return Promise.reject(normalizeError(error));
+        return Promise.reject(await normalizeError(error));
       }
 
       config._retried = true;
@@ -112,7 +122,7 @@ export const attachResponseErrorHandler = (client) => {
       } catch {
         rejectQueue(error);
         forceLogoutRedirect();
-        return Promise.reject(normalizeError(error));
+        return Promise.reject(await normalizeError(error));
       } finally {
         isRefreshing = false;
       }

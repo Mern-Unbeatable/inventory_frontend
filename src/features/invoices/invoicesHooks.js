@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
 import {
@@ -12,6 +12,7 @@ import {
   setInvoiceFilters,
   updateInvoiceThunk,
 } from './invoicesSlice.js';
+import { invoicesService } from './invoicesService.js';
 import {
   selectCurrentInvoice,
   selectInvoiceFilters,
@@ -26,6 +27,7 @@ import {
 
 export const useInvoices = () => {
   const dispatch = useDispatch();
+  const [pdfDownloadingId, setPdfDownloadingId] = useState(null);
   const items = useSelector(selectInvoiceItems);
   const meta = useSelector(selectInvoiceMeta);
   const filters = useSelector(selectInvoiceFilters);
@@ -112,6 +114,21 @@ export const useInvoices = () => {
     [dispatch]
   );
 
+  const downloadInvoicePdf = useCallback(async (id, invoiceNumber) => {
+    setPdfDownloadingId(id);
+    try {
+      const fallback = invoiceNumber ? `${invoiceNumber}.pdf` : 'invoice.pdf';
+      await invoicesService.downloadPdf(id, fallback);
+      toast.success('Invoice PDF downloaded');
+      return { success: true };
+    } catch (error) {
+      toast.error(error?.message || 'Failed to download invoice PDF');
+      return { success: false, error };
+    } finally {
+      setPdfDownloadingId(null);
+    }
+  }, []);
+
   return {
     items,
     meta,
@@ -125,6 +142,8 @@ export const useInvoices = () => {
     isLoading: status === 'loading',
     isDetailLoading: detailStatus === 'loading',
     isMutating: mutationStatus === 'loading',
+    pdfDownloadingId,
+    isPdfDownloading: Boolean(pdfDownloadingId),
     loadInvoices,
     loadInvoiceById,
     clearInvoice,
@@ -134,5 +153,6 @@ export const useInvoices = () => {
     confirmInvoice,
     cancelInvoice,
     deleteInvoice,
+    downloadInvoicePdf,
   };
 };

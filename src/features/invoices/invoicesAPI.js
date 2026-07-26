@@ -9,4 +9,8 @@ export const invoicesAPI = {
   confirm: (id) => apiClient.post(HTTP_ENDPOINTS.INVOICES.CONFIRM(id)),
   cancel: (id) => apiClient.post(HTTP_ENDPOINTS.INVOICES.CANCEL(id)),
   remove: (id) => apiClient.delete(HTTP_ENDPOINTS.INVOICES.BY_ID(id)),
+  downloadPdf: (id) =>
+    apiClient.get(HTTP_ENDPOINTS.INVOICES.PDF(id), {
+      responseType: 'blob',
+    }),
 };

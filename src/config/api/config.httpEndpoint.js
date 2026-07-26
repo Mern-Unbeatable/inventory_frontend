@@ -52,6 +52,7 @@ export const HTTP_ENDPOINTS = {
   INVOICES: {
     BASE: '/invoices',
     BY_ID: (id) => `/invoices/${id}`,
+    PDF: (id) => `/invoices/${id}/pdf`,
     CONFIRM: (id) => `/invoices/${id}/confirm`,
     CANCEL: (id) => `/invoices/${id}/cancel`,
   },

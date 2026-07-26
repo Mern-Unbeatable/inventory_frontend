@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, Plus, Trash2 } from 'lucide-react';
+import { Download, Eye, Plus, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/components/common/PageHeader.jsx';
 import { SearchBar } from '@/components/common/SearchBar.jsx';
 import { Table } from '@/components/tables/Table.jsx';
@@ -173,6 +173,8 @@ export default function InvoicesPage() {
     loadInvoices,
     updateFilters,
     createInvoice,
+    downloadInvoicePdf,
+    pdfDownloadingId,
   } = useInvoices();
 
   const { items: customers, loadCustomers, updateFilters: updateCustomerFilters } = useCustomers();
@@ -244,7 +246,23 @@ export default function InvoicesPage() {
       header: 'Actions',
       sticky: 'right',
       render: (row) => (
-        <Button variant="ghost" size="sm" icon={Eye} title="View" onClick={() => navigate(`/invoices/${row.id}`)} />
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            icon={Eye}
+            title="View"
+            onClick={() => navigate(`/invoices/${row.id}`)}
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            icon={Download}
+            title="Download PDF"
+            isLoading={pdfDownloadingId === row.id}
+            onClick={() => downloadInvoicePdf(row.id, row.invoiceNumber)}
+          />
+        </div>
       ),
     },
   ];

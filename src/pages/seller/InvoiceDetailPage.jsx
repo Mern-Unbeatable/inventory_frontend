@@ -8,6 +8,7 @@ import {
   BadgeCheck,
   Ban,
   CreditCard,
+  Download,
   Pencil,
   Plus,
   Trash2,
@@ -256,6 +257,8 @@ export default function InvoiceDetailPage() {
     confirmInvoice,
     cancelInvoice,
     deleteInvoice,
+    downloadInvoicePdf,
+    pdfDownloadingId,
   } = useInvoices();
   const {
     items: payments,
@@ -392,6 +395,16 @@ export default function InvoiceDetailPage() {
         description={`Customer: ${invoice.customer?.name || '—'} · Seller: ${invoice.seller?.name || '—'}`}
         actions={
           <div className='flex flex-wrap gap-2'>
+            <Button
+              variant='outline'
+              icon={Download}
+              isLoading={pdfDownloadingId === invoice.id}
+              onClick={() =>
+                downloadInvoicePdf(invoice.id, invoice.invoiceNumber)
+              }
+            >
+              Download PDF
+            </Button>
             {isDraft && (
               <>
                 <Button
