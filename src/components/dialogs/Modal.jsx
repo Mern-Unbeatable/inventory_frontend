@@ -7,6 +7,15 @@ const SIZE_CLASSES = {
   md: 'max-w-md',
   lg: 'max-w-lg',
   xl: 'max-w-2xl',
+  '2xl': 'max-w-4xl',
+  '3xl': 'max-w-5xl',
+  '4xl': 'max-w-6xl',
+  '5xl': 'max-w-7xl',
+  '6xl': 'max-w-8xl',
+  '7xl': 'max-w-9xl',
+  '8xl': 'max-w-10xl',
+  '9xl': 'max-w-11xl',
+  '10xl': 'max-w-12xl',
 };
 
 export function Modal({
@@ -40,7 +49,7 @@ export function Modal({
   return createPortal(
     <div className='fixed inset-0 z-50 flex items-center justify-center p-4'>
       <div
-        className='absolute inset-0 bg-slate-900/50'
+        className='absolute inset-0 bg-black/45 backdrop-blur-xs'
         onClick={onClose}
         aria-hidden='true'
       />

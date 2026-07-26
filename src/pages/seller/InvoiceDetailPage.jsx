@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useFieldArray, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import {
   ArrowLeft,
   BadgeCheck,
@@ -10,7 +9,6 @@ import {
   CreditCard,
   Download,
   Pencil,
-  Plus,
   Trash2,
 } from 'lucide-react';
 import { PageHeader } from '@/components/common/PageHeader.jsx';
@@ -31,7 +29,10 @@ import {
   paymentFormSchema,
   PAYMENT_METHODS,
 } from '@/features/payments/paymentsValidation.js';
-import { useProducts } from '@/features/products/productsHooks.js';
+import { buildEditInvoiceSchema } from '@/features/invoices/invoicesValidation.js';
+import { InvoiceLineItemsEditor } from '@/features/invoices/InvoiceLineItemsEditor.jsx';
+import { mapInventoryToProductOptions } from '@/features/invoices/invoiceItemsUtils.js';
+import { inventoryService } from '@/features/inventory/inventoryService.js';
 import { formatCurrency } from '@/utils/format/currency.js';
 import { formatDate, formatDateTime } from '@/utils/format/date.js';
 
@@ -42,40 +43,43 @@ const PAYMENT_TONE = {
   PAID: 'green',
 };
 
-const editInvoiceSchema = z.object({
-  notes: z.string().max(2000).optional().or(z.literal('')),
-  items: z
-    .array(
-      z.object({
-        productId: z.string().uuid('Select a product'),
-        quantity: z.coerce
-          .number()
-          .int()
-          .positive('Quantity must be at least 1'),
-      }),
-    )
-    .min(1, 'Add at least one item'),
-});
-
 function EditInvoiceModal({
   isOpen,
   onClose,
   invoice,
-  productOptions,
   onSubmit,
   isLoading,
 }) {
+  const [inventoryItems, setInventoryItems] = useState([]);
+  const [stockLoading, setStockLoading] = useState(false);
+
   const {
     register,
     control,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(editInvoiceSchema),
+    resolver: (values, context, options) => {
+      const selectedIds = (values.items || [])
+        .map((item) => item?.productId)
+        .filter(Boolean);
+      const optionsForSchema = mapInventoryToProductOptions(
+        inventoryItems,
+        selectedIds,
+      );
+      return zodResolver(buildEditInvoiceSchema(optionsForSchema))(
+        values,
+        context,
+        options,
+      );
+    },
     defaultValues: { notes: '', items: [{ productId: '', quantity: 1 }] },
   });
-  const { fields, append, remove } = useFieldArray({ control, name: 'items' });
+
+  const watchedItems = watch('items');
 
   useEffect(() => {
     if (isOpen && invoice) {
@@ -91,13 +95,49 @@ function EditInvoiceModal({
     }
   }, [isOpen, invoice, reset]);
 
+  useEffect(() => {
+    if (!isOpen || !invoice?.sellerId) {
+      setInventoryItems([]);
+      return undefined;
+    }
+
+    let cancelled = false;
+    setStockLoading(true);
+
+    inventoryService
+      .getUserInventory(invoice.sellerId)
+      .then((payload) => {
+        if (!cancelled) setInventoryItems(payload?.items || []);
+      })
+      .catch(() => {
+        if (!cancelled) setInventoryItems([]);
+      })
+      .finally(() => {
+        if (!cancelled) setStockLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, invoice?.sellerId]);
+
+  const selectedIds = useMemo(
+    () => (watchedItems || []).map((item) => item?.productId).filter(Boolean),
+    [watchedItems],
+  );
+
+  const productOptions = useMemo(
+    () => mapInventoryToProductOptions(inventoryItems, selectedIds),
+    [inventoryItems, selectedIds],
+  );
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
       title='Edit draft invoice'
-      description='Only draft invoices can be edited'
-      size='xl'
+      description='Only draft invoices can be edited — quantities cannot exceed seller stock'
+      size='2xl'
       footer={
         <>
           <Button variant='outline' onClick={onClose} disabled={isLoading}>
@@ -110,55 +150,16 @@ function EditInvoiceModal({
       }
     >
       <form className='space-y-4' onSubmit={handleSubmit(onSubmit)}>
-        <div>
-          <div className='mb-2 flex items-center justify-between'>
-            <span className='text-sm font-medium text-slate-700'>Items</span>
-            <Button
-              type='button'
-              variant='outline'
-              size='sm'
-              icon={Plus}
-              onClick={() => append({ productId: '', quantity: 1 })}
-            >
-              Add item
-            </Button>
-          </div>
-          <div className='space-y-3'>
-            {fields.map((field, index) => (
-              <div
-                key={field.id}
-                className='grid gap-2 sm:grid-cols-[1fr_7rem_auto] sm:items-start'
-              >
-                <Select
-                  placeholder='Select product'
-                  options={productOptions}
-                  error={errors.items?.[index]?.productId?.message}
-                  {...register(`items.${index}.productId`)}
-                />
-                <Input
-                  type='number'
-                  min={1}
-                  placeholder='Qty'
-                  error={errors.items?.[index]?.quantity?.message}
-                  {...register(`items.${index}.quantity`)}
-                />
-                <Button
-                  type='button'
-                  variant='ghost'
-                  size='sm'
-                  icon={Trash2}
-                  disabled={fields.length <= 1}
-                  onClick={() => remove(index)}
-                />
-              </div>
-            ))}
-          </div>
-          {errors.items?.message && (
-            <p className='mt-1.5 text-xs text-red-600'>
-              {errors.items.message}
-            </p>
-          )}
-        </div>
+        <InvoiceLineItemsEditor
+          control={control}
+          register={register}
+          setValue={setValue}
+          watch={watch}
+          errors={errors}
+          productOptions={productOptions}
+          stockLoading={stockLoading}
+          emptyStockMessage='This seller has no in-stock assigned products.'
+        />
         <Textarea
           id='notes'
           label='Notes'
@@ -269,12 +270,6 @@ export default function InvoiceDetailPage() {
     recordPayment,
     removePayment,
   } = usePayments();
-  const {
-    items: products,
-    loadProducts,
-    updateFilters: updateProductFilters,
-  } = useProducts();
-
   const [editOpen, setEditOpen] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [cancelling, setCancelling] = useState(false);
@@ -290,18 +285,6 @@ export default function InvoiceDetailPage() {
       clearPayments();
     };
   }, [id, loadInvoiceById, loadPayments, clearInvoice, clearPayments]);
-
-  useEffect(() => {
-    updateProductFilters({ page: 1, limit: 100, search: '' });
-    loadProducts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const productOptions = useMemo(
-    () =>
-      products.map((p) => ({ value: p.id, label: `${p.title} (${p.sku})` })),
-    [products],
-  );
 
   const itemColumns = [
     {
@@ -550,7 +533,6 @@ export default function InvoiceDetailPage() {
         isOpen={editOpen}
         onClose={() => setEditOpen(false)}
         invoice={invoice}
-        productOptions={productOptions}
         isLoading={isMutating}
         onSubmit={async (values) => {
           const result = await updateInvoice(invoice.id, {

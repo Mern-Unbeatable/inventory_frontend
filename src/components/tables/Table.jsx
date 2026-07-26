@@ -47,7 +47,7 @@ export function Table({
             {columns.map((column) => (
               <td
                 key={column.key}
-                className={`whitespace-nowrap px-3 py-2.5 text-slate-700 sm:px-4 sm:py-3 ${
+                className={`max-w-[220px] truncate whitespace-nowrap px-3 py-2.5 text-slate-700 sm:px-4 sm:py-3 ${
                   column.sticky === 'right'
                     ? 'sticky right-0 z-10 bg-white shadow-[-4px_0_8px_-4px_rgba(15,23,42,0.12)] group-hover:bg-slate-50'
                     : ''

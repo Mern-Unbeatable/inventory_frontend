@@ -333,7 +333,18 @@ function ReceiveModal({ isOpen, onClose, row, onSubmit, isLoading }) {
   );
 }
 
-function TransactionsModal({ isOpen, onClose, title, description, transactions, meta, isLoading, error, onPageChange, showSeller }) {
+function TransactionsModal({
+  isOpen,
+  onClose,
+  title,
+  description,
+  transactions,
+  meta,
+  isLoading,
+  error,
+  onPageChange,
+  showSeller,
+}) {
   const columns = [
     {
       key: 'createdAt',
@@ -361,7 +372,11 @@ function TransactionsModal({ isOpen, onClose, title, description, transactions, 
       key: 'change',
       header: 'Change',
       render: (row) => (
-        <span className={row.changeQuantity >= 0 ? 'text-green-600' : 'text-red-600'}>
+        <span
+          className={
+            row.changeQuantity >= 0 ? 'text-green-600' : 'text-red-600'
+          }
+        >
           {row.changeQuantity >= 0 ? '+' : ''}
           {formatNumber(row.changeQuantity)}
         </span>
@@ -390,9 +405,18 @@ function TransactionsModal({ isOpen, onClose, title, description, transactions, 
   ];
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title} description={description} size='xl'>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={title}
+      description={description}
+      size='3xl'
+    >
       {error ? (
-        <ErrorState title='Could not load transaction history' description={error} />
+        <ErrorState
+          title='Could not load transaction history'
+          description={error}
+        />
       ) : (
         <div className='space-y-3'>
           <div className='overflow-x-auto'>
@@ -878,7 +902,11 @@ export default function InventoryPage() {
         row={editing}
         isLoading={isMutating}
         onSubmit={async (values) => {
-          const result = await receiveStock(editing.id, values.quantity, values.reason || undefined);
+          const result = await receiveStock(
+            editing.id,
+            values.quantity,
+            values.reason || undefined,
+          );
           if (result.success) {
             setReceiveOpen(false);
             setEditing(null);
