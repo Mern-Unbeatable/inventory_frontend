@@ -23,12 +23,14 @@ import { FullPageLoader } from '@/components/ui/Loader.jsx';
 import { useAuth } from '@/features/auth/authHooks.js';
 import { loginSchema } from '@/features/auth/authValidation.js';
 import { appConfig } from '@/config/app.config.js';
+import { resolvePostLoginPath } from '@/utils/auth/auth.utils.js';
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, isAuthenticated, isBootstrapped, status, error } = useAuth();
-  const from = location.state?.from?.pathname || '/dashboard';
+  const { login, user, isAuthenticated, isBootstrapped, status, error } =
+    useAuth();
+  const intendedPath = location.state?.from?.pathname;
   const [showPassword, setShowPassword] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
 
@@ -43,16 +45,24 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (isBootstrapped && isAuthenticated) {
-      navigate(from, { replace: true });
+      navigate(resolvePostLoginPath(intendedPath, user), { replace: true });
     }
-  }, [isAuthenticated, isBootstrapped, navigate, from]);
+  }, [isAuthenticated, isBootstrapped, navigate, intendedPath, user]);
 
   if (!isBootstrapped) return <FullPageLoader label='Checking session…' />;
-  if (isAuthenticated) return <Navigate to={from} replace />;
+  if (isAuthenticated) {
+    return (
+      <Navigate to={resolvePostLoginPath(intendedPath, user)} replace />
+    );
+  }
 
   const onSubmit = async (values) => {
     const result = await login(values);
-    if (result.success) navigate(from, { replace: true });
+    if (result.success) {
+      navigate(resolvePostLoginPath(intendedPath, result.user), {
+        replace: true,
+      });
+    }
   };
 
   return (

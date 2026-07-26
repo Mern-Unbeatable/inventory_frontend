@@ -15,7 +15,12 @@ import { appConfig } from '@/config/app.config.js';
 import { useAuth } from '@/features/auth/authHooks.js';
 
 const NAV_ITEMS = [
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  {
+    to: '/dashboard',
+    label: 'Dashboard',
+    icon: LayoutDashboard,
+    customerHidden: true,
+  },
   { to: '/products', label: 'Products', icon: Package },
   {
     to: '/inventory',

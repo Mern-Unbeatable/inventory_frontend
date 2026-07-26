@@ -15,6 +15,39 @@ export const hasRole = (user, allowedRoles = []) => {
   return allowedRoles.includes(user.role);
 };
 
+/** Default landing path after login / home redirects. */
+export const getHomePath = (user) =>
+  isCustomer(user) ? '/products' : '/dashboard';
+
+/**
+ * Resolves where to send a user after login.
+ * Customers never land on Dashboard or staff-only areas.
+ */
+export const resolvePostLoginPath = (intendedPath, user) => {
+  const home = getHomePath(user);
+  if (!intendedPath || intendedPath === '/' || intendedPath === '/login') {
+    return home;
+  }
+  if (isCustomer(user) && intendedPath === '/dashboard') {
+    return home;
+  }
+  const staffPrefixes = [
+    '/inventory',
+    '/customers',
+    '/invoices',
+    '/countries',
+    '/branches',
+    '/users',
+  ];
+  if (
+    isCustomer(user) &&
+    staffPrefixes.some((prefix) => intendedPath.startsWith(prefix))
+  ) {
+    return home;
+  }
+  return intendedPath;
+};
+
 export const getInitials = (name = '') =>
   name
     .trim()

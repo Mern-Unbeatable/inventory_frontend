@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { DashboardLayout } from '@/layout/DashboardLayout.jsx';
 import { ProtectedRoute } from './ProtectedRoute.jsx';
+import { HomeRedirect } from './HomeRedirect.jsx';
 import LoginPage from '@/pages/auth/LoginPage.jsx';
 import { sharedRoutes } from './routes/shared.routes.jsx';
 import { sellerRoutes } from './routes/seller.routes.jsx';
@@ -12,11 +13,11 @@ import { adminRoutes } from './routes/admin.routes.jsx';
  * | Group        | Who                         | Paths                                      |
  * |--------------|-----------------------------|--------------------------------------------|
  * | Auth         | Public                      | /login                                     |
- * | Shared       | Any authenticated role      | /dashboard, /products, /profile, /settings |
+ * | Shared       | Any authenticated role      | /products, /profile, /settings (+ /dashboard for staff) |
  * | Seller/Staff | ADMIN + SELLER              | /inventory, /customers, /invoices          |
  * | Admin        | ADMIN only                  | /countries, /branches, /users              |
  *
- * URL paths are unchanged for backward compatibility.
+ * Customer home is /products (no dashboard in nav or landing).
  */
 export function AppRouter() {
   return (
@@ -27,7 +28,7 @@ export function AppRouter() {
       {/* ── Authenticated shell ───────────────────────────────────── */}
       <Route element={<ProtectedRoute />}>
         <Route element={<DashboardLayout />}>
-          <Route index element={<Navigate to='/dashboard' replace />} />
+          <Route index element={<HomeRedirect />} />
 
           {/* Shared — any authenticated role */}
           {sharedRoutes}
@@ -40,7 +41,7 @@ export function AppRouter() {
         </Route>
       </Route>
 
-      <Route path='*' element={<Navigate to='/dashboard' replace />} />
+      <Route path='*' element={<Navigate to='/' replace />} />
     </Routes>
   );
 }

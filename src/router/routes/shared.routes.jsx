@@ -1,20 +1,22 @@
-import { Route } from 'react-router-dom';
+import { Navigate, Route } from 'react-router-dom';
 import { useAuth } from '@/features/auth/authHooks.js';
 import AdminDashboardPage from '@/pages/admin/DashboardPage.jsx';
 import SettingsPage from '@/pages/admin/SettingsPage.jsx';
-import CustomerDashboardPage from '@/pages/customer/DashboardPage.jsx';
 import ProfilePage from '@/pages/customer/ProfilePage.jsx';
 import SellerDashboardPage from '@/pages/seller/DashboardPage.jsx';
 import ProductsPage from '@/pages/seller/ProductsPage.jsx';
+import { getHomePath } from '@/utils/auth/auth.utils.js';
 
 /**
- * Picks the role dashboard for `/dashboard`. Lives in the router (not under
- * pages/) so each role keeps one real DashboardPage with no re-export shim.
+ * Staff dashboards for `/dashboard`. Customers are redirected to Products —
+ * they no longer have a dashboard in the UI.
  */
 function DashboardRoute() {
-  const { isAdmin, isCustomer } = useAuth();
+  const { user, isAdmin, isCustomer } = useAuth();
+  if (isCustomer) {
+    return <Navigate to={getHomePath(user)} replace />;
+  }
   if (isAdmin) return <AdminDashboardPage />;
-  if (isCustomer) return <CustomerDashboardPage />;
   return <SellerDashboardPage />;
 }
 
