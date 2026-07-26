@@ -1,7 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, Pencil, Plus, ShoppingCart, Trash2 } from 'lucide-react';
+import {
+  AlertCircle,
+  DollarSign,
+  Eye,
+  FileText,
+  Package,
+  Pencil,
+  Plus,
+  ShoppingCart,
+  Tag,
+  Trash2,
+  Weight,
+} from 'lucide-react';
 import { PageHeader } from '@/components/common/PageHeader.jsx';
 import { SearchBar } from '@/components/common/SearchBar.jsx';
 import { Table } from '@/components/tables/Table.jsx';
@@ -22,6 +34,7 @@ import {
   AvailabilityStatus,
   StockStatusChip,
 } from '@/components/ui/StatusChip.jsx';
+import { ProductGrid } from '@/components/products/ProductGrid.jsx';
 import { formatCurrency, formatNumber } from '@/utils/format/currency.js';
 import { formatDate } from '@/utils/format/date.js';
 import { resolveMediaUrl } from '@/utils/media/url.js';
@@ -426,30 +439,54 @@ export default function ProductsPage() {
         />
       </div>
 
-      <div className='rounded-xl border border-slate-200 bg-white shadow-sm'>
-        <Table
-          columns={columns}
-          data={items}
-          keyExtractor={(row) => row.id}
-          isLoading={isLoading}
-          minWidthClassName={isAdmin ? 'min-w-[48rem]' : 'min-w-[40rem]'}
-          emptyTitle='No products yet'
-          emptyDescription={
-            isAdmin
-              ? 'Create your first catalog product.'
-              : isCustomer
-                ? 'No products are available in the catalog yet.'
+      {isCustomer ? (
+        <div className='space-y-4'>
+          <ProductGrid
+            products={items}
+            isLoading={isLoading}
+            onView={(product) => {
+              setViewing(product);
+              setViewOpen(true);
+            }}
+            emptyTitle='No products found'
+            emptyDescription={
+              filters.search
+                ? 'No products match your search. Try a different title or SKU.'
+                : 'No products are available in the catalog yet.'
+            }
+          />
+          <Pagination
+            page={meta.page}
+            totalPages={meta.totalPages}
+            total={meta.total}
+            limit={meta.limit}
+            onPageChange={(page) => updateFilters({ page })}
+          />
+        </div>
+      ) : (
+        <div className='rounded-xl border border-slate-200 bg-white shadow-sm'>
+          <Table
+            columns={columns}
+            data={items}
+            keyExtractor={(row) => row.id}
+            isLoading={isLoading}
+            minWidthClassName={isAdmin ? 'min-w-[48rem]' : 'min-w-[40rem]'}
+            emptyTitle='No products yet'
+            emptyDescription={
+              isAdmin
+                ? 'Create your first catalog product.'
                 : 'No products have been assigned to you yet. Ask an admin.'
-          }
-        />
-        <Pagination
-          page={meta.page}
-          totalPages={meta.totalPages}
-          total={meta.total}
-          limit={meta.limit}
-          onPageChange={(page) => updateFilters({ page })}
-        />
-      </div>
+            }
+          />
+          <Pagination
+            page={meta.page}
+            totalPages={meta.totalPages}
+            total={meta.total}
+            limit={meta.limit}
+            onPageChange={(page) => updateFilters({ page })}
+          />
+        </div>
+      )}
 
       <ProductFormModal
         isOpen={formOpen}
@@ -465,7 +502,7 @@ export default function ProductsPage() {
       <Modal
         isOpen={viewOpen}
         onClose={() => setViewOpen(false)}
-        title='Product details'
+        title='Product Details'
         status={
           !isAdmin && viewing ? (
             <AvailabilityStatus
@@ -480,54 +517,222 @@ export default function ProductsPage() {
         size='xl'
       >
         {viewing && (
-          <div className='space-y-4'>
-            {resolveMediaUrl(viewing.imageUrl) && (
-              <img
-                src={resolveMediaUrl(viewing.imageUrl)}
-                alt={viewing.title}
-                className='h-40 w-full rounded-xl object-cover ring-1 ring-slate-200'
-              />
-            )}
-            <div>
-              <dt className='text-slate-500'>Title</dt>
-              <dd className='font-medium text-slate-900'>{viewing.title}</dd>
+          <div className='space-y-6'>
+            {/* Product Image & Title Section */}
+            <div className='rounded-lg border border-slate-200 bg-white p-4'>
+              {resolveMediaUrl(viewing.imageUrl) && (
+                <div className='relative mb-4 overflow-hidden rounded-lg bg-slate-100'>
+                  <img
+                    src={resolveMediaUrl(viewing.imageUrl)}
+                    alt={viewing.title}
+                    className='h-48 w-full object-cover transition-transform hover:scale-105'
+                    loading='lazy'
+                  />
+                </div>
+              )}
+
+              <div className='space-y-1'>
+                <h3 className='text-xl font-semibold text-slate-900'>
+                  {viewing.title}
+                </h3>
+                {viewing.sku && (
+                  <p className='text-sm text-slate-500'>
+                    SKU:{' '}
+                    <span className='font-mono text-slate-600'>
+                      {viewing.sku}
+                    </span>
+                  </p>
+                )}
+              </div>
             </div>
-            <dl className='grid gap-3 text-sm sm:grid-cols-2'>
-              <div>
-                <dt className='text-slate-500'>SKU</dt>
-                <dd className='font-medium text-slate-900'>
-                  {viewing.sku || '—'}
-                </dd>
+
+            {/* Key Information Grid */}
+            <div className='grid gap-4 sm:grid-cols-2'>
+              {/* Price Card */}
+              <div className='rounded-lg border border-slate-200 bg-white p-4 transition hover:border-slate-300'>
+                <div className='flex items-center gap-2'>
+                  <div className='rounded-lg bg-emerald-50 p-2'>
+                    <DollarSign className='h-4 w-4 text-emerald-600' />
+                  </div>
+                  <div>
+                    <p className='text-xs font-medium uppercase tracking-wider text-slate-500'>
+                      Price
+                    </p>
+                    <p className='text-lg font-bold text-slate-900'>
+                      {formatCurrency(viewing.price)}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <dt className='text-slate-500'>Price</dt>
-                <dd className='font-medium text-slate-900'>
-                  {formatCurrency(viewing.price)}
-                </dd>
-              </div>
+
+              {/* Stock Card */}
               {!isAdmin && (
-                <div>
-                  <dt className='text-slate-500'>
-                    {isCustomer ? 'Available quantity' : 'Assigned qty'}
-                  </dt>
-                  <dd className='font-medium text-slate-900'>
-                    {formatNumber(
-                      (isCustomer
-                        ? viewing.availableQuantity
-                        : viewing.quantity) ?? 0,
-                    )}
-                  </dd>
+                <div className='rounded-lg border border-slate-200 bg-white p-4 transition hover:border-slate-300'>
+                  <div className='flex items-center gap-2'>
+                    <div
+                      className={`rounded-lg p-2 ${
+                        (isCustomer
+                          ? viewing.availableQuantity
+                          : viewing.quantity) > 10
+                          ? 'bg-emerald-50'
+                          : (isCustomer
+                                ? viewing.availableQuantity
+                                : viewing.quantity) > 0
+                            ? 'bg-amber-50'
+                            : 'bg-red-50'
+                      }`}
+                    >
+                      <Package
+                        className={`h-4 w-4 ${
+                          (isCustomer
+                            ? viewing.availableQuantity
+                            : viewing.quantity) > 10
+                            ? 'text-emerald-600'
+                            : (isCustomer
+                                  ? viewing.availableQuantity
+                                  : viewing.quantity) > 0
+                              ? 'text-amber-600'
+                              : 'text-red-600'
+                        }`}
+                      />
+                    </div>
+                    <div>
+                      <p className='text-xs font-medium uppercase tracking-wider text-slate-500'>
+                        {isCustomer
+                          ? 'Available Quantity'
+                          : 'Assigned Quantity'}
+                      </p>
+                      <p
+                        className={`text-lg font-bold ${
+                          (isCustomer
+                            ? viewing.availableQuantity
+                            : viewing.quantity) > 10
+                            ? 'text-emerald-600'
+                            : (isCustomer
+                                  ? viewing.availableQuantity
+                                  : viewing.quantity) > 0
+                              ? 'text-amber-600'
+                              : 'text-red-600'
+                        }`}
+                      >
+                        {formatNumber(
+                          (isCustomer
+                            ? viewing.availableQuantity
+                            : viewing.quantity) ?? 0,
+                        )}
+                        <span className='ml-1 text-sm font-normal text-slate-500'>
+                          units
+                        </span>
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
+
+              {/* Additional Info Cards */}
               {!isCustomer && (
-                <div className='sm:col-span-2'>
-                  <dt className='text-slate-500'>Description</dt>
-                  <dd className='mt-1 text-slate-700'>
-                    {viewing.description || '—'}
-                  </dd>
+                <>
+                  {viewing.category && (
+                    <div className='rounded-lg border border-slate-200 bg-white p-4 transition hover:border-slate-300'>
+                      <div className='flex items-center gap-2'>
+                        <div className='rounded-lg bg-blue-50 p-2'>
+                          <Tag className='h-4 w-4 text-blue-600' />
+                        </div>
+                        <div>
+                          <p className='text-xs font-medium uppercase tracking-wider text-slate-500'>
+                            Category
+                          </p>
+                          <p className='font-medium text-slate-900'>
+                            {viewing.category}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {viewing.weight && (
+                    <div className='rounded-lg border border-slate-200 bg-white p-4 transition hover:border-slate-300'>
+                      <div className='flex items-center gap-2'>
+                        <div className='rounded-lg bg-purple-50 p-2'>
+                          <Weight className='h-4 w-4 text-purple-600' />
+                        </div>
+                        <div>
+                          <p className='text-xs font-medium uppercase tracking-wider text-slate-500'>
+                            Weight
+                          </p>
+                          <p className='font-medium text-slate-900'>
+                            {viewing.weight} {viewing.weightUnit || 'kg'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Description Section */}
+            {!isCustomer && viewing.description && (
+              <div className='rounded-lg border border-slate-200 bg-white p-4'>
+                <div className='flex items-center gap-2'>
+                  <FileText className='h-4 w-4 text-slate-400' />
+                  <h4 className='text-sm font-medium text-slate-700'>
+                    Description
+                  </h4>
+                </div>
+                <div className='mt-2 text-sm leading-relaxed text-slate-600'>
+                  {viewing.description}
+                </div>
+              </div>
+            )}
+
+            {/* Quick Actions (Optional) */}
+            {!isAdmin &&
+              (isCustomer
+                ? viewing.availableQuantity > 0
+                : viewing.quantity > 0) && (
+                <div className='flex flex-col gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-4 sm:flex-row sm:items-center sm:justify-between'>
+                  <div>
+                    <p className='text-sm font-medium text-emerald-800'>
+                      ✓ In Stock
+                    </p>
+                    <p className='text-xs text-emerald-600'>
+                      {isCustomer
+                        ? `${viewing.availableQuantity} units available for purchase`
+                        : `You have ${viewing.quantity} units assigned`}
+                    </p>
+                  </div>
                 </div>
               )}
-            </dl>
+
+            {/* Low Stock Warning */}
+            {!isAdmin &&
+              (isCustomer ? viewing.availableQuantity : viewing.quantity) > 0 &&
+              (isCustomer ? viewing.availableQuantity : viewing.quantity) <=
+                5 && (
+                <div className='flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800'>
+                  <AlertCircle className='mt-0.5 h-4 w-4 flex-shrink-0' />
+                  <span>
+                    {isCustomer
+                      ? `Only ${viewing.availableQuantity} units remaining in stock`
+                      : `Low stock alert: Only ${viewing.quantity} units assigned`}
+                  </span>
+                </div>
+              )}
+
+            {/* Out of Stock Warning */}
+            {!isAdmin &&
+              (isCustomer ? viewing.availableQuantity : viewing.quantity) ===
+                0 && (
+                <div className='flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800'>
+                  <AlertCircle className='mt-0.5 h-4 w-4 flex-shrink-0' />
+                  <span>
+                    {isCustomer
+                      ? 'This product is currently out of stock'
+                      : 'No units assigned to you'}
+                  </span>
+                </div>
+              )}
           </div>
         )}
       </Modal>
