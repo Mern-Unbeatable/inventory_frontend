@@ -65,10 +65,10 @@ export function Modal({
                 {title}
               </h2>
             )}
-            {status && <div className='text-sm'>{status}</div>}
             {description && (
               <p className='text-sm text-slate-500'>{description}</p>
             )}
+            {status && <div className='text-sm'>{status}</div>}
           </div>
           <button
             type='button'

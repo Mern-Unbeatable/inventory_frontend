@@ -169,7 +169,7 @@ function CreateInvoiceModal({
       onClose={onClose}
       title='Create invoice'
       description='Created as a DRAFT — confirm it later to deduct stock'
-      size='2xl'
+      size='xl'
       footer={
         <>
           <Button variant='outline' onClick={onClose} disabled={isLoading}>
@@ -178,7 +178,9 @@ function CreateInvoiceModal({
           <Button
             onClick={handleSubmit(onSubmit)}
             isLoading={isLoading}
-            disabled={itemsDisabled || (!stockLoading && !productOptions.length)}
+            disabled={
+              itemsDisabled || (!stockLoading && !productOptions.length)
+            }
           >
             Create draft
           </Button>

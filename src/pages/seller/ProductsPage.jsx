@@ -51,7 +51,7 @@ function ProductFormModal({ isOpen, onClose, product, onSubmit, isLoading }) {
             description: product.description || '',
             price: product.price ?? 0,
           }
-        : { title: '', sku: '', description: '', price: 0 }
+        : { title: '', sku: '', description: '', price: 0 },
     );
     setImageFile(null);
     setRemoveImage(false);
@@ -74,11 +74,11 @@ function ProductFormModal({ isOpen, onClose, product, onSubmit, isLoading }) {
       isOpen={isOpen}
       onClose={onClose}
       title={product ? 'Edit product' : 'Create product'}
-      description="Global master catalog item"
-      size="lg"
+      description='Global master catalog item'
+      size='lg'
       footer={
         <>
-          <Button variant="outline" onClick={onClose} disabled={isLoading}>
+          <Button variant='outline' onClick={onClose} disabled={isLoading}>
             Cancel
           </Button>
           <Button onClick={submit} isLoading={isLoading}>
@@ -87,10 +87,10 @@ function ProductFormModal({ isOpen, onClose, product, onSubmit, isLoading }) {
         </>
       }
     >
-      <form className="grid gap-4 sm:grid-cols-2" onSubmit={submit}>
+      <form className='grid gap-4 sm:grid-cols-2' onSubmit={submit}>
         <ImageUploadField
-          className="sm:col-span-2"
-          label="Product image"
+          className='sm:col-span-2'
+          label='Product image'
           valueFile={imageFile}
           existingUrl={existingImageUrl}
           disabled={isLoading}
@@ -106,33 +106,33 @@ function ProductFormModal({ isOpen, onClose, product, onSubmit, isLoading }) {
           }}
         />
         <Input
-          id="title"
-          label="Title"
-          containerClassName="sm:col-span-2"
+          id='title'
+          label='Title'
+          containerClassName='sm:col-span-2'
           error={errors.title?.message}
           disabled={isLoading}
           {...register('title')}
         />
         <Input
-          id="sku"
-          label="SKU"
+          id='sku'
+          label='SKU'
           error={errors.sku?.message}
           disabled={isLoading}
           {...register('sku')}
         />
         <Input
-          id="price"
-          label="Price"
-          type="number"
-          step="0.01"
+          id='price'
+          label='Price'
+          type='number'
+          step='0.01'
           error={errors.price?.message}
           disabled={isLoading}
           {...register('price')}
         />
         <Textarea
-          id="description"
-          label="Description"
-          containerClassName="sm:col-span-2"
+          id='description'
+          label='Description'
+          containerClassName='sm:col-span-2'
           error={errors.description?.message}
           disabled={isLoading}
           {...register('description')}
@@ -172,7 +172,7 @@ function SellerSellModal({ isOpen, onClose, product, onSubmit, isLoading }) {
       }
       footer={
         <>
-          <Button variant="outline" onClick={onClose} disabled={isLoading}>
+          <Button variant='outline' onClick={onClose} disabled={isLoading}>
             Cancel
           </Button>
           <Button
@@ -185,11 +185,11 @@ function SellerSellModal({ isOpen, onClose, product, onSubmit, isLoading }) {
         </>
       }
     >
-      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+      <form className='space-y-4' onSubmit={handleSubmit(onSubmit)}>
         <Input
-          id="soldQuantity"
-          label="Units sold"
-          type="number"
+          id='soldQuantity'
+          label='Units sold'
+          type='number'
           hint={
             isOutOfStock
               ? 'No stock available to sell'
@@ -244,11 +244,11 @@ export default function ProductsPage() {
           return src ? (
             <img
               src={src}
-              alt=""
-              className="size-9 rounded-lg object-cover ring-1 ring-slate-200 sm:size-10"
+              alt=''
+              className='size-9 rounded-lg object-cover ring-1 ring-slate-200 sm:size-10'
             />
           ) : (
-            <div className="flex size-9 items-center justify-center rounded-lg bg-slate-100 text-xs text-slate-400 sm:size-10">
+            <div className='flex size-9 items-center justify-center rounded-lg bg-slate-100 text-xs text-slate-400 sm:size-10'>
               —
             </div>
           );
@@ -259,7 +259,7 @@ export default function ProductsPage() {
         header: 'Title',
         className: 'min-w-[9rem] max-w-[14rem] whitespace-normal',
         render: (row) => (
-          <span className="block truncate font-medium text-slate-900">
+          <span className='block truncate font-medium text-slate-900'>
             {row.title}
           </span>
         ),
@@ -269,7 +269,7 @@ export default function ProductsPage() {
         header: 'SKU',
         className: 'min-w-[6rem]',
         render: (row) => (
-          <span className="truncate text-slate-600">{row.sku || '—'}</span>
+          <span className='truncate text-slate-600'>{row.sku || '—'}</span>
         ),
       },
       {
@@ -284,7 +284,7 @@ export default function ProductsPage() {
               header: 'Description',
               className: 'min-w-[10rem] max-w-[16rem] whitespace-normal',
               render: (row) => (
-                <span className="block truncate text-slate-500">
+                <span className='block truncate text-slate-500'>
                   {row.description || '—'}
                 </span>
               ),
@@ -300,14 +300,22 @@ export default function ProductsPage() {
               key: 'quantity',
               header: isCustomer ? 'Available' : 'Qty',
               render: (row) =>
-                formatNumber(isCustomer ? row.availableQuantity ?? 0 : row.quantity ?? 0),
+                formatNumber(
+                  isCustomer
+                    ? (row.availableQuantity ?? 0)
+                    : (row.quantity ?? 0),
+                ),
             },
             {
               key: 'status',
               header: 'Status',
               render: (row) => (
                 <StockStatusChip
-                  remainingStock={isCustomer ? row.availableQuantity ?? 0 : row.quantity ?? 0}
+                  remainingStock={
+                    isCustomer
+                      ? (row.availableQuantity ?? 0)
+                      : (row.quantity ?? 0)
+                  }
                 />
               ),
             },
@@ -317,12 +325,12 @@ export default function ProductsPage() {
         header: 'Actions',
         sticky: 'right',
         render: (row) => (
-          <div className="flex items-center gap-0.5 sm:gap-1">
+          <div className='flex items-center gap-0.5 sm:gap-1'>
             <Button
-              variant="ghost"
-              size="sm"
+              variant='ghost'
+              size='sm'
               icon={Eye}
-              title="View"
+              title='View'
               onClick={() => {
                 setViewing(row);
                 setViewOpen(true);
@@ -331,29 +339,29 @@ export default function ProductsPage() {
             {isAdmin ? (
               <>
                 <Button
-                  variant="ghost"
-                  size="sm"
+                  variant='ghost'
+                  size='sm'
                   icon={Pencil}
-                  title="Edit"
+                  title='Edit'
                   onClick={() => {
                     setEditing(row);
                     setFormOpen(true);
                   }}
                 />
                 <Button
-                  variant="ghost"
-                  size="sm"
+                  variant='ghost'
+                  size='sm'
                   icon={Trash2}
-                  title="Delete"
+                  title='Delete'
                   onClick={() => setDeleting(row)}
                 />
               </>
             ) : isCustomer ? null : (
               <Button
-                variant="ghost"
-                size="sm"
+                variant='ghost'
+                size='sm'
                 icon={ShoppingCart}
-                title="Record sale"
+                title='Record sale'
                 onClick={() => setSellTarget(row)}
               />
             )}
@@ -410,22 +418,22 @@ export default function ProductsPage() {
         }
       />
 
-      <div className="mb-4 max-w-sm">
+      <div className='mb-4 max-w-sm'>
         <SearchBar
           value={filters.search}
-          placeholder="Search by title or SKU…"
+          placeholder='Search by title or SKU…'
           onSearch={(search) => updateFilters({ search, page: 1 })}
         />
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div className='rounded-xl border border-slate-200 bg-white shadow-sm'>
         <Table
           columns={columns}
           data={items}
           keyExtractor={(row) => row.id}
           isLoading={isLoading}
           minWidthClassName={isAdmin ? 'min-w-[48rem]' : 'min-w-[40rem]'}
-          emptyTitle="No products yet"
+          emptyTitle='No products yet'
           emptyDescription={
             isAdmin
               ? 'Create your first catalog product.'
@@ -457,52 +465,64 @@ export default function ProductsPage() {
       <Modal
         isOpen={viewOpen}
         onClose={() => setViewOpen(false)}
-        title={viewing?.title}
+        title='Product details'
         status={
           !isAdmin && viewing ? (
             <AvailabilityStatus
-              remainingStock={isCustomer ? viewing.availableQuantity ?? 0 : viewing.quantity ?? 0}
+              remainingStock={
+                isCustomer
+                  ? (viewing.availableQuantity ?? 0)
+                  : (viewing.quantity ?? 0)
+              }
             />
           ) : undefined
         }
-        description='Product details'
+        size='xl'
       >
         {viewing && (
-          <div className="space-y-4">
+          <div className='space-y-4'>
             {resolveMediaUrl(viewing.imageUrl) && (
               <img
                 src={resolveMediaUrl(viewing.imageUrl)}
                 alt={viewing.title}
-                className="h-40 w-full rounded-xl object-cover ring-1 ring-slate-200"
+                className='h-40 w-full rounded-xl object-cover ring-1 ring-slate-200'
               />
             )}
-            <dl className="grid gap-3 text-sm sm:grid-cols-2">
+            <div>
+              <dt className='text-slate-500'>Title</dt>
+              <dd className='font-medium text-slate-900'>{viewing.title}</dd>
+            </div>
+            <dl className='grid gap-3 text-sm sm:grid-cols-2'>
               <div>
-                <dt className="text-slate-500">SKU</dt>
-                <dd className="font-medium text-slate-900">
+                <dt className='text-slate-500'>SKU</dt>
+                <dd className='font-medium text-slate-900'>
                   {viewing.sku || '—'}
                 </dd>
               </div>
               <div>
-                <dt className="text-slate-500">Price</dt>
-                <dd className="font-medium text-slate-900">
+                <dt className='text-slate-500'>Price</dt>
+                <dd className='font-medium text-slate-900'>
                   {formatCurrency(viewing.price)}
                 </dd>
               </div>
               {!isAdmin && (
                 <div>
-                  <dt className="text-slate-500">
+                  <dt className='text-slate-500'>
                     {isCustomer ? 'Available quantity' : 'Assigned qty'}
                   </dt>
-                  <dd className="font-medium text-slate-900">
-                    {formatNumber((isCustomer ? viewing.availableQuantity : viewing.quantity) ?? 0)}
+                  <dd className='font-medium text-slate-900'>
+                    {formatNumber(
+                      (isCustomer
+                        ? viewing.availableQuantity
+                        : viewing.quantity) ?? 0,
+                    )}
                   </dd>
                 </div>
               )}
               {!isCustomer && (
-                <div className="sm:col-span-2">
-                  <dt className="text-slate-500">Description</dt>
-                  <dd className="mt-1 text-slate-700">
+                <div className='sm:col-span-2'>
+                  <dt className='text-slate-500'>Description</dt>
+                  <dd className='mt-1 text-slate-700'>
                     {viewing.description || '—'}
                   </dd>
                 </div>

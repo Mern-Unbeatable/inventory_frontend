@@ -54,7 +54,7 @@ export const getRowProductOptions = (allOptions, watchedItems, rowIndex) => {
       value: option.value,
       label:
         option.quantity > 0
-          ? `${option.title} (Avail: ${option.quantity})`
+          ? option.title
           : `${option.title} (Out of stock)`,
     }));
 };

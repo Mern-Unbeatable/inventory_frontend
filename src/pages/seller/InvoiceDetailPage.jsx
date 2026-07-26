@@ -43,13 +43,7 @@ const PAYMENT_TONE = {
   PAID: 'green',
 };
 
-function EditInvoiceModal({
-  isOpen,
-  onClose,
-  invoice,
-  onSubmit,
-  isLoading,
-}) {
+function EditInvoiceModal({ isOpen, onClose, invoice, onSubmit, isLoading }) {
   const [inventoryItems, setInventoryItems] = useState([]);
   const [stockLoading, setStockLoading] = useState(false);
 
@@ -378,16 +372,6 @@ export default function InvoiceDetailPage() {
         description={`Customer: ${invoice.customer?.name || '—'} · Seller: ${invoice.seller?.name || '—'}`}
         actions={
           <div className='flex flex-wrap gap-2'>
-            <Button
-              variant='outline'
-              icon={Download}
-              isLoading={pdfDownloadingId === invoice.id}
-              onClick={() =>
-                downloadInvoicePdf(invoice.id, invoice.invoiceNumber)
-              }
-            >
-              Download PDF
-            </Button>
             {isDraft && (
               <>
                 <Button
@@ -398,6 +382,15 @@ export default function InvoiceDetailPage() {
                 >
                   Confirm
                 </Button>
+                {isAdmin && (
+                  <Button
+                    variant='danger'
+                    icon={Trash2}
+                    onClick={() => setDeleting(true)}
+                  >
+                    Delete
+                  </Button>
+                )}
                 <Button
                   variant='outline'
                   icon={Pencil}
@@ -412,15 +405,6 @@ export default function InvoiceDetailPage() {
                 >
                   Cancel
                 </Button>
-                {isAdmin && (
-                  <Button
-                    variant='danger'
-                    icon={Trash2}
-                    onClick={() => setDeleting(true)}
-                  >
-                    Delete
-                  </Button>
-                )}
               </>
             )}
             {isConfirmed && invoice.dueAmount > 0 && (
@@ -471,7 +455,7 @@ export default function InvoiceDetailPage() {
           </section>
         </div>
 
-        <div className='lg:col-span-1'>
+        <div className='space-y-4'>
           <section className='rounded-xl border border-slate-200 bg-white p-5 sm:p-6'>
             <div className='flex flex-wrap items-center gap-2'>
               <Badge color={STATUS_TONE[invoice.status] || 'slate'}>
@@ -526,6 +510,18 @@ export default function InvoiceDetailPage() {
               </div>
             )}
           </section>
+          <div className='flex justify-end'>
+            <Button
+              variant='outline'
+              icon={Download}
+              isLoading={pdfDownloadingId === invoice.id}
+              onClick={() =>
+                downloadInvoicePdf(invoice.id, invoice.invoiceNumber)
+              }
+            >
+              Download PDF
+            </Button>
+          </div>
         </div>
       </div>
 
