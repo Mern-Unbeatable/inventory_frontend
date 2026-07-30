@@ -33,6 +33,7 @@ import { sellStockSchema } from '@/features/inventory/inventoryValidation.js';
 import {
   AvailabilityStatus,
   ProductOwnerBadge,
+  ProductOwnerCell,
   StockStatusChip,
 } from '@/components/ui/StatusChip.jsx';
 import { ProductGrid } from '@/components/products/ProductGrid.jsx';
@@ -285,20 +286,20 @@ export default function ProductsPage() {
       },
       {
         key: 'title',
-        header: 'Title',
-        className: 'min-w-[9rem] max-w-[14rem] whitespace-normal',
+        header: 'Product',
+        className: 'min-w-[10rem] max-w-[16rem] !whitespace-normal',
         render: (row) => (
-          <span className='block truncate font-medium text-slate-900'>
-            {row.title}
-          </span>
-        ),
-      },
-      {
-        key: 'sku',
-        header: 'SKU',
-        className: 'min-w-[6rem]',
-        render: (row) => (
-          <span className='truncate text-slate-600'>{row.sku || '—'}</span>
+          <div className='min-w-0'>
+            <p
+              className='truncate font-medium text-slate-900'
+              title={row.title}
+            >
+              {row.title}
+            </p>
+            <p className='truncate text-xs text-slate-500' title={row.sku || ''}>
+              SKU: {row.sku || '—'}
+            </p>
+          </div>
         ),
       },
       {
@@ -308,6 +309,12 @@ export default function ProductsPage() {
       },
       ...(isAdmin
         ? [
+            {
+              key: 'owner',
+              header: 'Product Owner',
+              className: 'min-w-[8rem] max-w-[12rem] !whitespace-normal',
+              render: (row) => <ProductOwnerCell product={row} />,
+            },
             {
               key: 'description',
               header: 'Description',

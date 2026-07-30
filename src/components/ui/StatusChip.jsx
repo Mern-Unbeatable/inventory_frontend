@@ -56,3 +56,32 @@ export function ProductOwnerBadge({ product, currentUserId }) {
 
   return <Badge color='slate'>Catalog</Badge>;
 }
+
+/** Admin table cell — owner name with role subtitle. */
+export function ProductOwnerCell({ product }) {
+  if (!product?.ownerId) {
+    return (
+      <div className='min-w-0'>
+        <p className='truncate font-medium text-slate-900'>Admin</p>
+        <p className='text-xs text-slate-500'>(Catalog)</p>
+      </div>
+    );
+  }
+
+  const name = product.owner?.name || 'Unknown';
+  const roleLabel =
+    product.owner?.role === 'ADMIN'
+      ? 'Admin'
+      : product.owner?.role === 'SELLER'
+        ? 'Seller'
+        : product.owner?.role || 'User';
+
+  return (
+    <div className='min-w-0'>
+      <p className='truncate font-medium text-slate-900' title={name}>
+        {name}
+      </p>
+      <p className='text-xs text-slate-500'>({roleLabel})</p>
+    </div>
+  );
+}
