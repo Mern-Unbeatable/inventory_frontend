@@ -10,6 +10,7 @@ export function ProductGrid({
   products = [],
   isLoading = false,
   onView,
+  onAddToCart,
   emptyTitle = 'No products found',
   emptyDescription = 'Try adjusting your search or check back later.',
 }) {
@@ -30,7 +31,12 @@ export function ProductGrid({
   return (
     <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'>
       {products.map((product) => (
-        <ProductCard key={product.id} product={product} onView={onView} />
+        <ProductCard
+          key={product.id}
+          product={product}
+          onView={onView}
+          onAddToCart={onAddToCart}
+        />
       ))}
     </div>
   );

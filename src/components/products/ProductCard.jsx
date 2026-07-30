@@ -1,4 +1,4 @@
-import { Eye, Package } from 'lucide-react';
+import { Eye, Package, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/Button.jsx';
 import { StockStatusChip } from '@/components/ui/StatusChip.jsx';
 import { formatCurrency, formatNumber } from '@/utils/format/currency.js';
@@ -7,9 +7,10 @@ import { resolveMediaUrl } from '@/utils/media/url.js';
 /**
  * Read-only product card for the CUSTOMER catalog view.
  */
-export function ProductCard({ product, onView }) {
+export function ProductCard({ product, onView, onAddToCart }) {
   const imageUrl = resolveMediaUrl(product?.imageUrl);
   const available = product?.availableQuantity ?? 0;
+  const inStock = available > 0;
 
   return (
     <article className='group flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md'>
@@ -59,15 +60,24 @@ export function ProductCard({ product, onView }) {
           </div>
         </dl>
 
-        <div className='mt-auto pt-4'>
+        <div className='mt-auto flex flex-col gap-2 pt-4 sm:flex-row'>
           <Button
             variant='outline'
             size='sm'
             icon={Eye}
-            className='w-full'
+            className='flex-1'
             onClick={() => onView?.(product)}
           >
             View details
+          </Button>
+          <Button
+            size='sm'
+            icon={ShoppingCart}
+            className='flex-1'
+            disabled={!inStock}
+            onClick={() => onAddToCart?.(product)}
+          >
+            Add to cart
           </Button>
         </div>
       </div>

@@ -60,4 +60,7 @@ export const HTTP_ENDPOINTS = {
     BASE: '/payments',
     BY_ID: (id) => `/payments/${id}`,
   },
+  PRODUCT_REQUESTS: {
+    PDF: '/product-requests/pdf',
+  },
 };

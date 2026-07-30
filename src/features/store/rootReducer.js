@@ -9,6 +9,7 @@ import inventoryReducer from '../inventory/inventorySlice.js';
 import customersReducer from '../customers/customersSlice.js';
 import invoicesReducer from '../invoices/invoicesSlice.js';
 import paymentsReducer from '../payments/paymentsSlice.js';
+import cartReducer from '../cart/cartSlice.js';
 
 export const rootReducer = combineReducers({
   auth: authReducer,
@@ -21,4 +22,5 @@ export const rootReducer = combineReducers({
   customers: customersReducer,
   invoices: invoicesReducer,
   payments: paymentsReducer,
+  cart: cartReducer,
 });

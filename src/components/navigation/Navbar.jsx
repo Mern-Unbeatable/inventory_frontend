@@ -2,12 +2,18 @@ import { Menu, Search } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/features/auth/authHooks.js';
 import { ROLES } from '@/utils/auth/auth.utils.js';
+import { CartButton } from '@/components/cart/CartButton.jsx';
 import { NavbarUserMenu } from './NavbarUserMenu.jsx';
 
 export function Navbar({ title, onMenuClick }) {
-  const { user } = useAuth();
+  const { user, isCustomer } = useAuth();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const roleLabel = user?.role === ROLES.ADMIN ? 'Admin' : 'Seller';
+  const roleLabel =
+    user?.role === ROLES.ADMIN
+      ? 'Admin'
+      : user?.role === ROLES.CUSTOMER
+        ? 'Customer'
+        : 'Seller';
 
   return (
     <header className='sticky top-0 z-30 flex py-2 sm:py-[12px] items-center justify-between gap-3 border-b border-gray-200 bg-white/80 px-4 backdrop-blur-xl transition-all duration-200 sm:px-6'>
@@ -42,6 +48,8 @@ export function Navbar({ title, onMenuClick }) {
         </button>
 
         <div className='hidden h-8 w-px bg-gray-200 sm:block' />
+
+        {isCustomer ? <CartButton /> : null}
 
         <NavbarUserMenu />
       </div>

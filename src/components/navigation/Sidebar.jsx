@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   LogOut,
   Package,
+  ShoppingCart,
   UsersRound,
   Users,
   Warehouse,
@@ -22,6 +23,7 @@ const NAV_ITEMS = [
     customerHidden: true,
   },
   { to: '/products', label: 'Products', icon: Package },
+  { to: '/cart', label: 'Cart', icon: ShoppingCart, customerOnly: true },
   {
     to: '/inventory',
     label: 'Inventory',
@@ -61,9 +63,9 @@ const NAV_ITEMS = [
 export function Sidebar({ onNavigate }) {
   const { isAdmin, isCustomer, logout } = useAuth();
 
-  const items = NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin).filter(
-    (item) => !item.customerHidden || !isCustomer,
-  );
+  const items = NAV_ITEMS.filter((item) => !item.adminOnly || isAdmin)
+    .filter((item) => !item.customerHidden || !isCustomer)
+    .filter((item) => !item.customerOnly || isCustomer);
 
   return (
     <aside className='flex h-full flex-col bg-slate-900 text-slate-100'>
