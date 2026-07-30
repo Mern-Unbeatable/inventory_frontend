@@ -512,7 +512,7 @@ export default function InvoiceDetailPage() {
           </section>
           <div className='flex justify-end'>
             <Button
-              variant='outline'
+              variant='primary'
               icon={Download}
               isLoading={pdfDownloadingId === invoice.id}
               onClick={() =>

@@ -11,6 +11,8 @@ export const customerFormSchema = z.object({
   phone: z.preprocess(emptyToUndefined, z.string().max(30).optional()),
   address: z.preprocess(emptyToUndefined, z.string().max(300).optional()),
   notes: z.preprocess(emptyToUndefined, z.string().max(2000).optional()),
+  countryId: z.string().uuid('Select a country'),
+  branchId: z.string().uuid('Select a branch'),
 });
 
 export const portalAccountSchema = z.object({

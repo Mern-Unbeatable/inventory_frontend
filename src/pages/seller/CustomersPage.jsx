@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,38 +10,101 @@ import { Pagination } from '@/components/tables/Pagination.jsx';
 import { Button } from '@/components/ui/Button.jsx';
 import { Input } from '@/components/forms/Input.jsx';
 import { Textarea } from '@/components/forms/Textarea.jsx';
+import { Select } from '@/components/forms/Select.jsx';
 import { Modal } from '@/components/dialogs/Modal.jsx';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog.jsx';
 import { ErrorState } from '@/components/ui/ErrorState.jsx';
 import { useAuth } from '@/features/auth/authHooks.js';
 import { useCustomers } from '@/features/customers/customersHooks.js';
+import { useCountries } from '@/features/countries/countriesHooks.js';
+import { useBranches } from '@/features/branches/branchesHooks.js';
 import { customerFormSchema } from '@/features/customers/customersValidation.js';
 
-function CustomerFormModal({ isOpen, onClose, customer, onSubmit, isLoading }) {
+function CustomerFormModal({
+  isOpen,
+  onClose,
+  customer,
+  onSubmit,
+  isLoading,
+  isAdmin,
+  sellerCountryId,
+  sellerBranchId,
+}) {
+  const { items: countries, loadCountries } = useCountries();
+  const { items: branches, loadBranches, updateFilters: updateBranchFilters } =
+    useBranches();
+
   const {
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(customerFormSchema),
-    defaultValues: { name: '', email: '', phone: '', address: '', notes: '' },
+    defaultValues: {
+      name: '',
+      email: '',
+      phone: '',
+      address: '',
+      notes: '',
+      countryId: '',
+      branchId: '',
+    },
   });
+
+  const selectedCountryId = watch('countryId');
 
   useEffect(() => {
     if (!isOpen) return;
-    reset(
-      customer
-        ? {
-            name: customer.name || '',
-            email: customer.email || '',
-            phone: customer.phone || '',
-            address: customer.address || '',
-            notes: customer.notes || '',
-          }
-        : { name: '', email: '', phone: '', address: '', notes: '' },
-    );
-  }, [isOpen, customer, reset]);
+    loadCountries();
+  }, [isOpen, loadCountries]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    if (customer) {
+      reset({
+        name: customer.name || '',
+        email: customer.email || '',
+        phone: customer.phone || '',
+        address: customer.address || '',
+        notes: customer.notes || '',
+        countryId: customer.countryId || customer.country?.id || '',
+        branchId: customer.branchId || customer.branch?.id || '',
+      });
+      return;
+    }
+
+    reset({
+      name: '',
+      email: '',
+      phone: '',
+      address: '',
+      notes: '',
+      countryId: isAdmin ? '' : sellerCountryId || '',
+      branchId: isAdmin ? '' : sellerBranchId || '',
+    });
+  }, [isOpen, customer, reset, isAdmin, sellerCountryId, sellerBranchId]);
+
+  useEffect(() => {
+    if (!isOpen || !selectedCountryId) return;
+    updateBranchFilters({ page: 1, limit: 100, countryId: selectedCountryId, search: '' });
+    loadBranches();
+  }, [isOpen, selectedCountryId, loadBranches, updateBranchFilters]);
+
+  const countryOptions = useMemo(
+    () => countries.map((country) => ({ value: country.id, label: country.name })),
+    [countries],
+  );
+
+  const branchOptions = useMemo(
+    () => branches.map((branch) => ({ value: branch.id, label: branch.name })),
+    [branches],
+  );
+
+  const lockLocation = !isAdmin;
 
   return (
     <Modal
@@ -88,6 +151,29 @@ function CustomerFormModal({ isOpen, onClose, customer, onSubmit, isLoading }) {
           disabled={isLoading}
           {...register('phone')}
         />
+        <Select
+          id='countryId'
+          label='Country'
+          placeholder='Select country'
+          options={countryOptions}
+          error={errors.countryId?.message}
+          disabled={isLoading || lockLocation}
+          {...register('countryId', {
+            onChange: (event) => {
+              setValue('countryId', event.target.value);
+              setValue('branchId', '');
+            },
+          })}
+        />
+        <Select
+          id='branchId'
+          label='Branch'
+          placeholder={selectedCountryId ? 'Select branch' : 'Select a country first'}
+          options={branchOptions}
+          error={errors.branchId?.message}
+          disabled={isLoading || lockLocation || !selectedCountryId}
+          {...register('branchId')}
+        />
         <Textarea
           id='address'
           label='Address'
@@ -111,7 +197,10 @@ function CustomerFormModal({ isOpen, onClose, customer, onSubmit, isLoading }) {
 
 export default function CustomersPage() {
   const navigate = useNavigate();
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
+  const sellerCountryId = user?.branch?.countryId || user?.branch?.country?.id || '';
+  const sellerBranchId = user?.branchId || '';
+
   const {
     items,
     meta,
@@ -148,6 +237,31 @@ export default function CustomersPage() {
         >
           {row.name}
         </button>
+      ),
+    },
+    {
+      key: 'country',
+      header: 'Country',
+      render: (row) => row.country?.name || '—',
+    },
+    {
+      key: 'branch',
+      header: 'Branch',
+      render: (row) => row.branch?.name || '—',
+    },
+    {
+      key: 'createdBy',
+      header: 'Created By',
+      className: 'min-w-[8rem] max-w-[12rem] !whitespace-normal',
+      render: (row) => (
+        <div className='min-w-0'>
+          <p className='truncate font-medium text-slate-900'>
+            {row.creator?.name || '—'}
+          </p>
+          {row.creator?.role ? (
+            <p className='text-xs text-slate-500'>({row.creator.role})</p>
+          ) : null}
+        </div>
       ),
     },
     {
@@ -261,7 +375,7 @@ export default function CustomersPage() {
           data={items}
           keyExtractor={(row) => row.id}
           isLoading={isLoading}
-          minWidthClassName='min-w-[42rem]'
+          minWidthClassName='min-w-[56rem]'
           emptyTitle='No customers yet'
           emptyDescription='Add your first customer to start creating invoices.'
         />
@@ -283,6 +397,9 @@ export default function CustomersPage() {
         customer={editing}
         onSubmit={handleSubmit}
         isLoading={isMutating}
+        isAdmin={isAdmin}
+        sellerCountryId={sellerCountryId}
+        sellerBranchId={sellerBranchId}
       />
 
       <ConfirmDialog

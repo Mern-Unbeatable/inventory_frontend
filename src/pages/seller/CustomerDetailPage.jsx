@@ -4,12 +4,16 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   ArrowLeft,
+  Building2,
+  Calendar,
   DollarSign,
   FileText,
+  Globe,
   Mail,
   MapPin,
   Phone,
   ShieldCheck,
+  User,
   UserPlus,
 } from 'lucide-react';
 import { PageHeader } from '@/components/common/PageHeader.jsx';
@@ -330,7 +334,28 @@ export default function CustomerDetailPage() {
               </Badge>
             </div>
 
-            <dl className='mt-5 grid gap-4 grid-cols-1'>
+            <dl className='mt-5 grid gap-4 grid-cols-2'>
+              <InfoRow
+                icon={Globe}
+                label='Country'
+                value={customer.country?.name}
+              />
+              <InfoRow
+                icon={Building2}
+                label='Branch'
+                value={customer.branch?.name}
+              />
+              <InfoRow
+                icon={User}
+                label='Created by'
+                value={customer.creator?.name}
+              />
+
+              <InfoRow
+                icon={Calendar}
+                label='Created at'
+                value={formatDate(customer.createdAt)}
+              />
               <InfoRow icon={Mail} label='Email' value={customer.email} />
               <InfoRow icon={Phone} label='Phone' value={customer.phone} />
               <InfoRow icon={MapPin} label='Address' value={customer.address} />
