@@ -32,6 +32,7 @@ import { productFormSchema } from '@/features/products/productsValidation.js';
 import { sellStockSchema } from '@/features/inventory/inventoryValidation.js';
 import {
   AvailabilityStatus,
+  ProductOwnerBadge,
   StockStatusChip,
 } from '@/components/ui/StatusChip.jsx';
 import { ProductGrid } from '@/components/products/ProductGrid.jsx';
@@ -40,7 +41,19 @@ import { formatCurrency, formatNumber } from '@/utils/format/currency.js';
 import { formatDate } from '@/utils/format/date.js';
 import { resolveMediaUrl } from '@/utils/media/url.js';
 
-function ProductFormModal({ isOpen, onClose, product, onSubmit, isLoading }) {
+function isOwnedByUser(product, userId) {
+  if (!product || !userId) return false;
+  return product.ownerId === userId;
+}
+
+function ProductFormModal({
+  isOpen,
+  onClose,
+  product,
+  onSubmit,
+  isLoading,
+  description = 'Global master catalog item',
+}) {
   const {
     register,
     handleSubmit,
@@ -88,7 +101,7 @@ function ProductFormModal({ isOpen, onClose, product, onSubmit, isLoading }) {
       isOpen={isOpen}
       onClose={onClose}
       title={product ? 'Edit product' : 'Create product'}
-      description='Global master catalog item'
+      description={description}
       size='lg'
       footer={
         <>
@@ -219,7 +232,7 @@ function SellerSellModal({ isOpen, onClose, product, onSubmit, isLoading }) {
 }
 
 export default function ProductsPage() {
-  const { isAdmin, isCustomer } = useAuth();
+  const { isAdmin, isCustomer, isSeller, user } = useAuth();
   const {
     items,
     meta,
@@ -311,31 +324,44 @@ export default function ProductsPage() {
               render: (row) => formatDate(row.createdAt),
             },
           ]
-        : [
-            {
-              key: 'quantity',
-              header: isCustomer ? 'Available' : 'Qty',
-              render: (row) =>
-                formatNumber(
-                  isCustomer
-                    ? (row.availableQuantity ?? 0)
-                    : (row.quantity ?? 0),
+        : isCustomer
+          ? [
+              {
+                key: 'quantity',
+                header: 'Available',
+                render: (row) => formatNumber(row.availableQuantity ?? 0),
+              },
+              {
+                key: 'status',
+                header: 'Status',
+                render: (row) => (
+                  <StockStatusChip
+                    remainingStock={row.availableQuantity ?? 0}
+                  />
                 ),
-            },
-            {
-              key: 'status',
-              header: 'Status',
-              render: (row) => (
-                <StockStatusChip
-                  remainingStock={
-                    isCustomer
-                      ? (row.availableQuantity ?? 0)
-                      : (row.quantity ?? 0)
-                  }
-                />
-              ),
-            },
-          ]),
+              },
+            ]
+          : [
+              {
+                key: 'quantity',
+                header: 'Qty',
+                render: (row) => formatNumber(row.quantity ?? 0),
+              },
+              {
+                key: 'status',
+                header: 'Status',
+                render: (row) => (
+                  <StockStatusChip remainingStock={row.quantity ?? 0} />
+                ),
+              },
+              {
+                key: 'owner',
+                header: 'Owner',
+                render: (row) => (
+                  <ProductOwnerBadge product={row} currentUserId={user?.id} />
+                ),
+              },
+            ]),
       {
         key: 'actions',
         header: 'Actions',
@@ -373,19 +399,33 @@ export default function ProductsPage() {
                 />
               </>
             ) : isCustomer ? null : (
-              <Button
-                variant='ghost'
-                size='sm'
-                icon={ShoppingCart}
-                title='Record sale'
-                onClick={() => setSellTarget(row)}
-              />
+              <>
+                <Button
+                  variant='ghost'
+                  size='sm'
+                  icon={ShoppingCart}
+                  title='Record sale'
+                  onClick={() => setSellTarget(row)}
+                />
+                {isOwnedByUser(row, user?.id) ? (
+                  <Button
+                    variant='ghost'
+                    size='sm'
+                    icon={Pencil}
+                    title='Edit product'
+                    onClick={() => {
+                      setEditing(row);
+                      setFormOpen(true);
+                    }}
+                  />
+                ) : null}
+              </>
             )}
           </div>
         ),
       },
     ],
-    [isAdmin, isCustomer],
+    [isAdmin, isCustomer, isSeller, user?.id],
   );
 
   const handleSubmit = async (values) => {
@@ -417,10 +457,10 @@ export default function ProductsPage() {
             ? 'Master catalog used when assigning stock to sellers'
             : isCustomer
               ? 'Browse available products, quantity, and price'
-              : 'Your assigned products — record sales to update stock'
+              : 'Your assigned products — create and edit your own, record sales on any assignment'
         }
         actions={
-          isAdmin ? (
+          isAdmin || isSeller ? (
             <Button
               icon={Plus}
               onClick={() => {
@@ -502,6 +542,11 @@ export default function ProductsPage() {
         product={editing}
         onSubmit={handleSubmit}
         isLoading={isMutating}
+        description={
+          isAdmin
+            ? 'Global master catalog item'
+            : 'Your product — you can edit details and upload an image'
+        }
       />
 
       <Modal
@@ -535,10 +580,7 @@ export default function ProductsPage() {
                   const next = Number(event.target.value);
                   if (!Number.isFinite(next)) return;
                   setCartQty(
-                    Math.min(
-                      Math.max(1, next),
-                      viewing.availableQuantity ?? 1,
-                    ),
+                    Math.min(Math.max(1, next), viewing.availableQuantity ?? 1),
                   );
                 }}
               />

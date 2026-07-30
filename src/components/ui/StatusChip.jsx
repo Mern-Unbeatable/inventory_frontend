@@ -42,3 +42,17 @@ export function AvailabilityStatus({ remainingStock, showQuantity = true }) {
 export function RoleChip({ role }) {
   return <Badge color={role === 'ADMIN' ? 'primary' : 'slate'}>{role}</Badge>;
 }
+
+export function ProductOwnerBadge({ product, currentUserId }) {
+  const ownerId = product?.ownerId || product?.owner?.id || null;
+
+  if (ownerId && ownerId === currentUserId) {
+    return <Badge color='primary'>My Product</Badge>;
+  }
+
+  if (product?.owner?.name) {
+    return <Badge color='slate'>{product.owner.name}</Badge>;
+  }
+
+  return <Badge color='slate'>Catalog</Badge>;
+}
