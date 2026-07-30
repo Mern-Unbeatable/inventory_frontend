@@ -296,7 +296,10 @@ export default function ProductsPage() {
             >
               {row.title}
             </p>
-            <p className='truncate text-xs text-slate-500' title={row.sku || ''}>
+            <p
+              className='truncate text-xs text-slate-500'
+              title={row.sku || ''}
+            >
               SKU: {row.sku || '—'}
             </p>
           </div>
@@ -625,7 +628,6 @@ export default function ProductsPage() {
                 </h3>
                 {viewing.sku && (
                   <p className='text-sm text-slate-500'>
-                    SKU:{' '}
                     <span className='font-mono text-slate-600'>
                       {viewing.sku}
                     </span>
