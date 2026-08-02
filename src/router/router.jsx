@@ -13,9 +13,9 @@ import { adminRoutes } from './routes/admin.routes.jsx';
  * | Group        | Who                         | Paths                                      |
  * |--------------|-----------------------------|--------------------------------------------|
  * | Auth         | Public                      | /login                                     |
- * | Shared       | Any authenticated role      | /products, /profile, /settings (+ /dashboard for staff) |
+ * | Shared       | Any authenticated role      | /products, /cart (+ /dashboard for staff) |
  * | Seller/Staff | ADMIN + SELLER              | /inventory, /customers, /invoices          |
- * | Admin        | ADMIN only                  | /countries, /branches, /users              |
+ * | Admin        | ADMIN only                  | /countries, /branches, /users, /profile    |
  *
  * Customer home is /products (no dashboard in nav or landing).
  */

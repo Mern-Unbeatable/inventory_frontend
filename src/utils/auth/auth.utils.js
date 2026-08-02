@@ -31,17 +31,20 @@ export const resolvePostLoginPath = (intendedPath, user) => {
   if (isCustomer(user) && intendedPath === '/dashboard') {
     return home;
   }
-  const staffPrefixes = [
-    '/inventory',
-    '/customers',
-    '/invoices',
-    '/countries',
-    '/branches',
-    '/users',
-  ];
+  const adminOnlyPrefixes = ['/countries', '/branches', '/users', '/settings'];
+  const sellerPrefixes = ['/inventory', '/customers', '/invoices'];
+
+  if (
+    !isAdmin(user) &&
+    adminOnlyPrefixes.some((prefix) => intendedPath.startsWith(prefix))
+  ) {
+    return home;
+  }
   if (
     isCustomer(user) &&
-    staffPrefixes.some((prefix) => intendedPath.startsWith(prefix))
+    [...sellerPrefixes, ...adminOnlyPrefixes].some((prefix) =>
+      intendedPath.startsWith(prefix)
+    )
   ) {
     return home;
   }

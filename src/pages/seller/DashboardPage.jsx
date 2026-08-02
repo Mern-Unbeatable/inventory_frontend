@@ -6,6 +6,7 @@ import {
   FileText,
   Package,
   ShoppingCart,
+  Users,
   Warehouse,
 } from 'lucide-react';
 import { PageHeader } from '@/components/common/PageHeader.jsx';
@@ -111,6 +112,12 @@ export default function DashboardPage() {
           title='Invoices'
           value={formatNumber(totals.invoiceCount)}
           icon={FileText}
+        />
+        <StatCard
+          title='Customers'
+          value={formatNumber(totals.customerCount ?? 0)}
+          icon={Users}
+          hint='Created by you'
         />
         <StatCard
           title='Pending payments'
