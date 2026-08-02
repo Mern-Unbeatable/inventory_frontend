@@ -75,12 +75,6 @@ export default function CartPage() {
         description='Review your product request — not a purchase or payment'
       />
 
-      <div className='mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900'>
-        This cart is for creating a <strong>product request</strong> only. No
-        payment is collected and stock is not reserved. Download the PDF and
-        share it with us via WhatsApp, email, or messenger.
-      </div>
-
       <div className='overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm'>
         <div className='hidden overflow-x-auto md:block'>
           <table className='w-full min-w-[48rem] border-collapse text-left text-sm'>
@@ -228,6 +222,12 @@ export default function CartPage() {
             </Button>
           </div>
         </div>
+      </div>
+
+      <div className='mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900'>
+        This cart is for creating a <strong>product request</strong> only. No
+        payment is collected and stock is not reserved. Download the PDF and
+        share it with us via WhatsApp, email, or messenger.
       </div>
     </div>
   );
