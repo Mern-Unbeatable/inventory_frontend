@@ -7,6 +7,7 @@ import {
   FileText,
   Globe2,
   Package,
+  PackageX,
   ShoppingCart,
   TrendingUp,
   UsersRound,
@@ -19,6 +20,8 @@ import { Table } from '@/components/tables/Table.jsx';
 import { ErrorState } from '@/components/ui/ErrorState.jsx';
 import { Loader } from '@/components/ui/Loader.jsx';
 import { useDashboard } from '@/features/dashboard/dashboardHooks.js';
+import { SalesBySellerChart } from '@/components/charts/SalesBySellerChart.jsx';
+import { StockStatusPieChart } from '@/components/charts/StockStatusPieChart.jsx';
 import { formatCurrency, formatNumber } from '@/utils/format/currency.js';
 import { formatDateTime } from '@/utils/format/date.js';
 
@@ -162,6 +165,13 @@ export default function DashboardPage() {
           hint='Quantity ≤ 5'
         />
         <StatCard
+          title='Out of stock'
+          value={formatNumber(totals.outOfStockProducts ?? 0)}
+          icon={PackageX}
+          tone='slate'
+          hint='Catalog products'
+        />
+        <StatCard
           title='Customers'
           value={formatNumber(totals.customers)}
           icon={UsersRound}
@@ -179,6 +189,13 @@ export default function DashboardPage() {
           tone='amber'
           hint='Confirmed invoices'
         />
+      </div>
+
+      <PageHeader title='Analytics' />
+
+      <div className='my-6 grid gap-6 lg:grid-cols-2'>
+        <SalesBySellerChart data={data?.salesBySeller || []} />
+        <StockStatusPieChart data={data?.stockStatusDistribution || []} />
       </div>
 
       <PageHeader title='Regional Performance' />
