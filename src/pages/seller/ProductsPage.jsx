@@ -21,6 +21,7 @@ import { Pagination } from '@/components/tables/Pagination.jsx';
 import { Button } from '@/components/ui/Button.jsx';
 import { Input } from '@/components/forms/Input.jsx';
 import { Textarea } from '@/components/forms/Textarea.jsx';
+import { Select } from '@/components/forms/Select.jsx';
 import { Modal } from '@/components/dialogs/Modal.jsx';
 import { ImageUploadField } from '@/components/forms/ImageUploadField.jsx';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog.jsx';
@@ -28,8 +29,9 @@ import { ErrorState } from '@/components/ui/ErrorState.jsx';
 import { useAuth } from '@/features/auth/authHooks.js';
 import { useProducts } from '@/features/products/productsHooks.js';
 import { useInventory } from '@/features/inventory/inventoryHooks.js';
-import { productFormSchema } from '@/features/products/productsValidation.js';
+import { buildProductFormSchema } from '@/features/products/productsValidation.js';
 import { sellStockSchema } from '@/features/inventory/inventoryValidation.js';
+import { useUsers } from '@/features/users/usersHooks.js';
 import {
   AvailabilityStatus,
   ProductOwnerBadge,
@@ -54,15 +56,35 @@ function ProductFormModal({
   onSubmit,
   isLoading,
   description = 'Global master catalog item',
+  showQuantity = false,
+  quantityHint = '',
+  quantityReadOnly = false,
+  showSellerSelect = false,
+  sellerOptions = [],
 }) {
+  const isCreate = !product;
+  const requireSellerForStock = showSellerSelect && isCreate;
+
+  const formSchema = useMemo(
+    () => buildProductFormSchema({ requireSellerForStock }),
+    [requireSellerForStock],
+  );
+
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(productFormSchema),
-    defaultValues: { title: '', sku: '', description: '', price: 0 },
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: '',
+      sku: '',
+      description: '',
+      price: 0,
+      quantity: 0,
+      assignUserId: '',
+    },
   });
 
   const [imageFile, setImageFile] = useState(null);
@@ -78,8 +100,17 @@ function ProductFormModal({
             sku: product.sku || '',
             description: product.description || '',
             price: product.price ?? 0,
+            quantity: product.quantity ?? 0,
+            assignUserId: '',
           }
-        : { title: '', sku: '', description: '', price: 0 },
+        : {
+            title: '',
+            sku: '',
+            description: '',
+            price: 0,
+            quantity: 0,
+            assignUserId: '',
+          },
     );
     setImageFile(null);
     setRemoveImage(false);
@@ -157,6 +188,30 @@ function ProductFormModal({
           disabled={isLoading}
           {...register('price')}
         />
+        {showQuantity ? (
+          <Input
+            id='quantity'
+            label='Qty'
+            type='number'
+            min={0}
+            step={1}
+            hint={quantityHint || undefined}
+            error={errors.quantity?.message}
+            disabled={isLoading || quantityReadOnly}
+            {...register('quantity')}
+          />
+        ) : null}
+        {showSellerSelect && isCreate ? (
+          <Select
+            id='assignUserId'
+            label='Assign to seller'
+            placeholder='Select seller'
+            options={sellerOptions}
+            error={errors.assignUserId?.message}
+            disabled={isLoading}
+            {...register('assignUserId')}
+          />
+        ) : null}
         <Textarea
           id='description'
           label='Description'
@@ -249,6 +304,11 @@ export default function ProductsPage() {
     deleteProduct,
   } = useProducts();
   const { recordSale, isMutating: isStockMutating } = useInventory();
+  const {
+    items: users,
+    loadUsers,
+    updateFilters: updateUserFilters,
+  } = useUsers();
   const { addProduct } = useCart();
   const [cartQty, setCartQty] = useState(1);
 
@@ -262,6 +322,29 @@ export default function ProductsPage() {
   useEffect(() => {
     loadProducts();
   }, [loadProducts, filters.page, filters.search]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    updateUserFilters({ page: 1, limit: 100, search: '', role: 'SELLER' });
+  }, [isAdmin, updateUserFilters]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    loadUsers();
+  }, [isAdmin, loadUsers]);
+
+  const sellerOptions = useMemo(
+    () =>
+      users
+        .filter((user) => user.role === 'SELLER')
+        .map((user) => ({
+          value: user.id,
+          label: user.branch?.name
+            ? `${user.name} - ${user.branch.name}`
+            : user.name,
+        })),
+    [users],
+  );
 
   const columns = useMemo(
     () => [
@@ -544,6 +627,7 @@ export default function ProductsPage() {
       )}
 
       <ProductFormModal
+        key={editing?.id ?? 'create'}
         isOpen={formOpen}
         onClose={() => {
           setFormOpen(false);
@@ -556,6 +640,25 @@ export default function ProductsPage() {
           isAdmin
             ? 'Global master catalog item'
             : 'Your product — you can edit details and upload an image'
+        }
+        showQuantity={isAdmin || isSeller}
+        showSellerSelect={isAdmin && !editing}
+        sellerOptions={sellerOptions}
+        quantityHint={
+          editing
+            ? isAdmin
+              ? (editing._count?.assignedUsers ?? 0) > 1
+                ? 'Total stock across sellers — adjust per seller via Inventory'
+                : (editing._count?.assignedUsers ?? 0) === 0
+                  ? 'Assign this product to a seller via Inventory before setting stock'
+                  : 'Stock for the assigned seller'
+              : 'Your assigned stock quantity'
+            : isAdmin
+              ? 'Set initial stock and choose which seller receives it'
+              : 'Initial stock for your inventory'
+        }
+        quantityReadOnly={
+          isAdmin && editing && (editing._count?.assignedUsers ?? 0) > 1
         }
       />
 
