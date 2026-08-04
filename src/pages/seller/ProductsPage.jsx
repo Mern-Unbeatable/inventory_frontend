@@ -38,6 +38,7 @@ import {
   ProductOwnerCell,
   StockStatusChip,
 } from '@/components/ui/StatusChip.jsx';
+import { ProductImageCell } from '@/components/products/ProductImageCell.jsx';
 import { ProductGrid } from '@/components/products/ProductGrid.jsx';
 import { useCart } from '@/features/cart/cartHooks.js';
 import { formatCurrency, formatNumber } from '@/utils/format/currency.js';
@@ -363,20 +364,7 @@ export default function ProductsPage() {
         key: 'image',
         header: '',
         className: 'w-14',
-        render: (row) => {
-          const src = resolveMediaUrl(row.imageUrl);
-          return src ? (
-            <img
-              src={src}
-              alt=''
-              className='size-9 rounded-lg object-cover ring-1 ring-slate-200 sm:size-10'
-            />
-          ) : (
-            <div className='flex size-9 items-center justify-center rounded-lg bg-slate-100 text-xs text-slate-400 sm:size-10'>
-              —
-            </div>
-          );
-        },
+        render: (row) => <ProductImageCell imageUrl={row.imageUrl} />,
       },
       {
         key: 'title',

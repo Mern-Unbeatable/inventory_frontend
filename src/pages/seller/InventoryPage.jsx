@@ -28,6 +28,7 @@ import {
   StockStatusChip,
 } from '@/components/ui/StatusChip.jsx';
 import { ErrorState } from '@/components/ui/ErrorState.jsx';
+import { ProductImageCell } from '@/components/products/ProductImageCell.jsx';
 import { useInventory } from '@/features/inventory/inventoryHooks.js';
 import {
   adjustQuantitySchema,
@@ -569,6 +570,12 @@ export default function InventoryPage() {
 
   const columns = useMemo(
     () => [
+      {
+        key: 'image',
+        header: '',
+        className: 'w-14',
+        render: (row) => <ProductImageCell imageUrl={row.product?.imageUrl} />,
+      },
       {
         key: 'product',
         header: 'Product',
