@@ -29,7 +29,10 @@ export const useProducts = () => {
   const mutationStatus = useSelector(selectProductsMutationStatus);
   const error = useSelector(selectProductsError);
 
-  const loadProducts = useCallback(() => dispatch(fetchProductsThunk()), [dispatch]);
+  const loadProducts = useCallback(
+    (params) => dispatch(fetchProductsThunk(params)),
+    [dispatch]
+  );
 
   const updateFilters = useCallback(
     (next) => {

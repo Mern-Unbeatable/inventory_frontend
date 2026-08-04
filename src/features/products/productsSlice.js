@@ -4,10 +4,19 @@ import { appConfig } from '@/config/app.config.js';
 
 export const fetchProductsThunk = createAsyncThunk(
   'products/fetchList',
-  async (_, { getState, rejectWithValue }) => {
+  async (overrides = {}, { getState, rejectWithValue }) => {
     try {
-      const { page, limit, search } = getState().products.filters;
-      return await productsService.list({ page, limit, search: search || undefined });
+      const filters = getState().products.filters;
+      const page = overrides.page ?? filters.page;
+      const limit = overrides.limit ?? filters.limit;
+      const search =
+        overrides.search !== undefined ? overrides.search : filters.search;
+
+      return await productsService.list({
+        page,
+        limit,
+        search: search || undefined,
+      });
     } catch (error) {
       return rejectWithValue(error);
     }

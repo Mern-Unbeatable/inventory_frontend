@@ -480,7 +480,6 @@ export default function InventoryPage() {
   const {
     items: products,
     loadProducts,
-    updateFilters: updateProductFilters,
   } = useProducts();
   const {
     items: users,
@@ -502,10 +501,9 @@ export default function InventoryPage() {
     if (!isAdmin) return;
     loadCountries();
     updateBranchFilters({ page: 1, limit: 100, search: '', countryId: '' });
-    updateProductFilters({ page: 1, limit: 100, search: '' });
     updateUserFilters({ page: 1, limit: 100, search: '', role: 'SELLER' });
     loadBranches();
-    loadProducts();
+    loadProducts({ page: 1, limit: 100, search: '' });
     loadUsers();
   }, [
     isAdmin,
@@ -514,7 +512,6 @@ export default function InventoryPage() {
     loadProducts,
     loadUsers,
     updateBranchFilters,
-    updateProductFilters,
     updateUserFilters,
   ]);
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -43,6 +43,7 @@ import { useCart } from '@/features/cart/cartHooks.js';
 import { formatCurrency, formatNumber } from '@/utils/format/currency.js';
 import { formatDate } from '@/utils/format/date.js';
 import { resolveMediaUrl } from '@/utils/media/url.js';
+import { appConfig } from '@/config/app.config.js';
 
 function isOwnedByUser(product, userId) {
   if (!product || !userId) return false;
@@ -318,8 +319,18 @@ export default function ProductsPage() {
   const [viewing, setViewing] = useState(null);
   const [deleting, setDeleting] = useState(null);
   const [sellTarget, setSellTarget] = useState(null);
+  const skipFilterFetchRef = useRef(true);
+
+  useLayoutEffect(() => {
+    updateFilters({ limit: appConfig.paginationDefaultLimit });
+    loadProducts();
+  }, [loadProducts, updateFilters]);
 
   useEffect(() => {
+    if (skipFilterFetchRef.current) {
+      skipFilterFetchRef.current = false;
+      return;
+    }
     loadProducts();
   }, [loadProducts, filters.page, filters.search]);
 
