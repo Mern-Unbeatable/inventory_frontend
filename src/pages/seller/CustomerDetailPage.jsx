@@ -46,6 +46,7 @@ function InfoRow({ icon: Icon, label, value }) {
 }
 
 function PortalAccountModal({ isOpen, onClose, onSubmit, isLoading }) {
+  const [passwordFieldKey, setPasswordFieldKey] = useState(0);
   const {
     register,
     handleSubmit,
@@ -57,7 +58,10 @@ function PortalAccountModal({ isOpen, onClose, onSubmit, isLoading }) {
   });
 
   useEffect(() => {
-    if (isOpen) reset({ email: '', password: '' });
+    if (isOpen) {
+      reset({ email: '', password: '' });
+      setPasswordFieldKey((key) => key + 1);
+    }
   }, [isOpen, reset]);
 
   return (
@@ -87,9 +91,11 @@ function PortalAccountModal({ isOpen, onClose, onSubmit, isLoading }) {
           {...register('email')}
         />
         <Input
+          key={passwordFieldKey}
           id='password'
           label='Password'
           type='password'
+          showPasswordToggle
           error={errors.password?.message}
           disabled={isLoading}
           {...register('password')}
