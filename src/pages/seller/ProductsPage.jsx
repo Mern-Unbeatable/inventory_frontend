@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -48,7 +48,11 @@ import { selectCartItems } from '@/features/cart/cartSelectors.js';
 import { formatCurrency, formatNumber } from '@/utils/format/currency.js';
 import { formatDate } from '@/utils/format/date.js';
 import { resolveMediaUrl } from '@/utils/media/url.js';
-import { appConfig } from '@/config/app.config.js';
+
+const PRODUCTS_PAGE_SIZE_OPTIONS = [10, 20, 30, 50, 100].map((value) => ({
+  value: String(value),
+  label: String(value),
+}));
 
 function isOwnedByUser(product, userId) {
   if (!product || !userId) return false;
@@ -325,20 +329,10 @@ export default function ProductsPage() {
   const [viewing, setViewing] = useState(null);
   const [deleting, setDeleting] = useState(null);
   const [sellTarget, setSellTarget] = useState(null);
-  const skipFilterFetchRef = useRef(true);
-
-  useLayoutEffect(() => {
-    updateFilters({ limit: appConfig.paginationDefaultLimit });
-    loadProducts();
-  }, [loadProducts, updateFilters]);
 
   useEffect(() => {
-    if (skipFilterFetchRef.current) {
-      skipFilterFetchRef.current = false;
-      return;
-    }
     loadProducts();
-  }, [loadProducts, filters.page, filters.search]);
+  }, [loadProducts, filters.page, filters.search, filters.limit]);
 
   useEffect(() => {
     if (!viewOpen) setImagePreviewOpen(false);
@@ -585,11 +579,25 @@ export default function ProductsPage() {
         }
       />
 
-      <div className='mb-4 max-w-sm'>
-        <SearchBar
-          value={filters.search}
-          placeholder='Search by title or SKU…'
-          onSearch={(search) => updateFilters({ search, page: 1 })}
+      <div className='mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+        <div className='max-w-sm flex-1'>
+          <SearchBar
+            value={filters.search}
+            placeholder='Search by title or SKU…'
+            onSearch={(search) => updateFilters({ search, page: 1 })}
+          />
+        </div>
+        <Select
+          id='products-per-page'
+          label='Show per page'
+          inlineLabel
+          value={String(filters.limit)}
+          options={PRODUCTS_PAGE_SIZE_OPTIONS}
+          containerClassName='w-full sm:w-auto'
+          className='w-20'
+          onChange={(event) =>
+            updateFilters({ limit: Number(event.target.value), page: 1 })
+          }
         />
       </div>
 

@@ -44,6 +44,11 @@ import { useUsers } from '@/features/users/usersHooks.js';
 import { formatCurrency, formatNumber } from '@/utils/format/currency.js';
 import { formatDateTime } from '@/utils/format/date.js';
 
+const INVENTORY_PAGE_SIZE_OPTIONS = [10, 20, 30, 50, 100].map((value) => ({
+  value: String(value),
+  label: String(value),
+}));
+
 const TRANSACTION_TONE = {
   RECEIVED: 'green',
   SALE: 'primary',
@@ -478,10 +483,7 @@ export default function InventoryPage() {
     loadBranches,
     updateFilters: updateBranchFilters,
   } = useBranches();
-  const {
-    items: products,
-    loadProducts,
-  } = useProducts();
+  const { items: products, loadProducts } = useProducts();
   const {
     items: users,
     loadUsers,
@@ -521,6 +523,7 @@ export default function InventoryPage() {
   }, [
     loadInventory,
     filters.page,
+    filters.limit,
     filters.countryId,
     filters.branchId,
     filters.userId,
@@ -761,8 +764,8 @@ export default function InventoryPage() {
       <div
         className={`mb-4 grid grid-cols-1 gap-3 ${
           isAdmin
-            ? 'sm:grid-cols-2 lg:grid-cols-4'
-            : 'sm:grid-cols-1 lg:max-w-sm'
+            ? 'sm:grid-cols-2 lg:grid-cols-5'
+            : 'sm:grid-cols-[1fr_auto] sm:items-end'
         }`}
       >
         <div className={isAdmin ? 'sm:col-span-2 lg:col-span-1' : ''}>
@@ -809,6 +812,18 @@ export default function InventoryPage() {
             />
           </>
         ) : null}
+        <Select
+          id='inventory-per-page'
+          // label='Show per page'
+          inlineLabel
+          value={String(filters.limit)}
+          options={INVENTORY_PAGE_SIZE_OPTIONS}
+          containerClassName={isAdmin ? '' : 'w-full sm:w-auto'}
+          className='w-20'
+          onChange={(event) =>
+            updateFilters({ limit: Number(event.target.value), page: 1 })
+          }
+        />
       </div>
 
       <div className='rounded-xl border border-slate-200 bg-white shadow-sm'>
