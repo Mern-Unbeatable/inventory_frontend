@@ -10,7 +10,7 @@ export function CartSummary({ onDownload, isDownloading = false }) {
   const { lineCount, itemCount, grandTotal } = useCart();
 
   return (
-    <aside className='h-fit self-start rounded-xl border border-slate-200 bg-white p-5 shadow-sm lg:sticky lg:top-6'>
+    <aside className='h-fit self-start rounded-xl border border-slate-200 bg-white p-5 shadow-sm lg:sticky lg:top-20'>
       <h2 className='text-sm font-semibold text-slate-900'>Cart Summary</h2>
 
       <dl className='mt-4 space-y-3 text-sm'>
