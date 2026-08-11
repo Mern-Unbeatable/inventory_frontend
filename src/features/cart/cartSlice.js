@@ -24,34 +24,26 @@ const cartSlice = createSlice({
   initialState: loadCartState(),
   reducers: {
     addToCart: (state, action) => {
-      const { product, quantity = 1 } = action.payload;
+      const { product } = action.payload;
       if (!product?.id) return;
 
       const available = product.availableQuantity ?? 0;
       if (available <= 0) return;
 
-      const addQty = Math.min(Math.max(1, Number(quantity) || 1), available);
       const existing = state.items.find((item) => item.productId === product.id);
+      if (existing) return;
 
-      if (existing) {
-        const nextQty = Math.min(existing.quantity + addQty, available);
-        Object.assign(existing, normalizeProduct(product), { quantity: nextQty });
-      } else {
-        state.items.push({ ...normalizeProduct(product), quantity: addQty });
-      }
+      state.items.push({ ...normalizeProduct(product), quantity: 1 });
     },
     setCartQuantity: (state, action) => {
       const { productId, quantity } = action.payload;
       const item = state.items.find((row) => row.productId === productId);
       if (!item) return;
 
-      const qty = Number(quantity) || 0;
-      if (qty <= 0) {
-        state.items = state.items.filter((row) => row.productId !== productId);
-        return;
-      }
+      const qty = Number(quantity);
+      if (!Number.isFinite(qty) || qty < 1) return;
 
-      item.quantity = Math.min(qty, item.availableQuantity);
+      item.quantity = Math.min(Math.max(1, Math.floor(qty)), item.availableQuantity);
     },
     removeFromCart: (state, action) => {
       const productId = action.payload;

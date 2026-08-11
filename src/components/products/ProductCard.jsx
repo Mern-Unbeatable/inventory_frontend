@@ -1,6 +1,8 @@
 import { Eye, Package, ShoppingCart } from 'lucide-react';
+import { useSelector } from 'react-redux';
 import { Button } from '@/components/ui/Button.jsx';
 import { StockStatusChip } from '@/components/ui/StatusChip.jsx';
+import { selectCartItems } from '@/features/cart/cartSelectors.js';
 import { formatCurrency, formatNumber } from '@/utils/format/currency.js';
 import { resolveMediaUrl } from '@/utils/media/url.js';
 
@@ -8,9 +10,16 @@ import { resolveMediaUrl } from '@/utils/media/url.js';
  * Read-only product card for the CUSTOMER catalog view.
  */
 export function ProductCard({ product, onView, onAddToCart }) {
+  const cartItems = useSelector(selectCartItems);
   const imageUrl = resolveMediaUrl(product?.imageUrl);
-  const available = product?.availableQuantity ?? 0;
-  const inStock = available > 0;
+  const availableQuantity = product?.availableQuantity ?? 0;
+  const isInCart = cartItems.some((item) => item.productId === product.id);
+  const isOutOfStock = availableQuantity === 0;
+  const isDisabled = isInCart || isOutOfStock;
+
+  let addButtonLabel = 'Add to cart';
+  if (isOutOfStock) addButtonLabel = 'Out of Stock';
+  else if (isInCart) addButtonLabel = 'Added to Cart';
 
   return (
     <article className='group flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md'>
@@ -29,7 +38,7 @@ export function ProductCard({ product, onView, onAddToCart }) {
           </div>
         )}
         <div className='absolute right-3 top-3'>
-          <StockStatusChip remainingStock={available} />
+          <StockStatusChip remainingStock={availableQuantity} />
         </div>
       </div>
 
@@ -55,7 +64,7 @@ export function ProductCard({ product, onView, onAddToCart }) {
               Available
             </dt>
             <dd className='mt-0.5 font-semibold text-slate-900'>
-              {formatNumber(available)} units
+              {formatNumber(availableQuantity)} units
             </dd>
           </div>
         </dl>
@@ -74,10 +83,12 @@ export function ProductCard({ product, onView, onAddToCart }) {
             size='sm'
             icon={ShoppingCart}
             className='flex-1'
-            disabled={!inStock}
-            onClick={() => onAddToCart?.(product)}
+            disabled={isDisabled}
+            onClick={() => {
+              if (!isDisabled) onAddToCart?.(product);
+            }}
           >
-            Add to cart
+            {addButtonLabel}
           </Button>
         </div>
       </div>

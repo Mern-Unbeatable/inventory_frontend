@@ -32,25 +32,37 @@ export const useCart = () => {
   );
 
   const addProduct = useCallback(
-    (product, quantity = 1) => {
+    (product) => {
       const available = product?.availableQuantity ?? 0;
       if (available <= 0) {
         toast.error('This product is out of stock');
         return { success: false };
       }
 
-      dispatch(addToCart({ product, quantity }));
+      const alreadyInCart = items.some((item) => item.productId === product.id);
+      if (alreadyInCart) {
+        return { success: false };
+      }
+
+      dispatch(addToCart({ product }));
       toast.success('Added to cart');
       return { success: true };
     },
-    [dispatch],
+    [dispatch, items],
   );
 
   const updateQuantity = useCallback(
     (productId, quantity) => {
-      dispatch(setCartQuantity({ productId, quantity }));
+      const qty = Number(quantity);
+      if (!Number.isFinite(qty) || qty < 1) return;
+
+      const item = items.find((row) => row.productId === productId);
+      if (!item) return;
+
+      const clamped = Math.min(Math.max(1, Math.floor(qty)), item.availableQuantity);
+      dispatch(setCartQuantity({ productId, quantity: clamped }));
     },
-    [dispatch],
+    [dispatch, items],
   );
 
   const removeItem = useCallback(

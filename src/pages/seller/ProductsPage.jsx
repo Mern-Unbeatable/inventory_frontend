@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -41,6 +42,7 @@ import {
 import { ProductImageCell } from '@/components/products/ProductImageCell.jsx';
 import { ProductGrid } from '@/components/products/ProductGrid.jsx';
 import { useCart } from '@/features/cart/cartHooks.js';
+import { selectCartItems } from '@/features/cart/cartSelectors.js';
 import { formatCurrency, formatNumber } from '@/utils/format/currency.js';
 import { formatDate } from '@/utils/format/date.js';
 import { resolveMediaUrl } from '@/utils/media/url.js';
@@ -312,7 +314,7 @@ export default function ProductsPage() {
     updateFilters: updateUserFilters,
   } = useUsers();
   const { addProduct } = useCart();
-  const [cartQty, setCartQty] = useState(1);
+  const cartItems = useSelector(selectCartItems);
 
   const [formOpen, setFormOpen] = useState(false);
   const [viewOpen, setViewOpen] = useState(false);
@@ -530,6 +532,16 @@ export default function ProductsPage() {
     }
   };
 
+  const viewingAvailableQuantity = viewing?.availableQuantity ?? 0;
+  const viewingIsInCart = viewing
+    ? cartItems.some((item) => item.productId === viewing.id)
+    : false;
+  const viewingIsOutOfStock = viewingAvailableQuantity === 0;
+  const viewingAddDisabled = viewingIsInCart || viewingIsOutOfStock;
+  let viewingAddLabel = 'Add to cart';
+  if (viewingIsOutOfStock) viewingAddLabel = 'Out of Stock';
+  else if (viewingIsInCart) viewingAddLabel = 'Added to Cart';
+
   if (status === 'failed' && !items.length) {
     return (
       <ErrorState
@@ -581,10 +593,9 @@ export default function ProductsPage() {
             isLoading={isLoading}
             onView={(product) => {
               setViewing(product);
-              setCartQty(1);
               setViewOpen(true);
             }}
-            onAddToCart={(product) => addProduct(product, 1)}
+            onAddToCart={(product) => addProduct(product)}
             emptyTitle='No products found'
             emptyDescription={
               filters.search
@@ -678,34 +689,18 @@ export default function ProductsPage() {
         }
         size='xl'
         footer={
-          isCustomer && viewing && (viewing.availableQuantity ?? 0) > 0 ? (
-            <div className='flex w-full flex-col gap-3 sm:flex-row sm:items-end sm:justify-end'>
-              <Input
-                id='modal-cart-qty'
-                label='Quantity'
-                type='number'
-                min={1}
-                max={viewing.availableQuantity}
-                value={cartQty}
-                containerClassName='w-28'
-                onChange={(event) => {
-                  const next = Number(event.target.value);
-                  if (!Number.isFinite(next)) return;
-                  setCartQty(
-                    Math.min(Math.max(1, next), viewing.availableQuantity ?? 1),
-                  );
-                }}
-              />
-              <Button
-                icon={ShoppingCart}
-                onClick={() => {
-                  const result = addProduct(viewing, cartQty);
-                  if (result.success) setViewOpen(false);
-                }}
-              >
-                Add to cart
-              </Button>
-            </div>
+          isCustomer && viewing ? (
+            <Button
+              icon={ShoppingCart}
+              disabled={viewingAddDisabled}
+              onClick={() => {
+                if (viewingAddDisabled) return;
+                const result = addProduct(viewing);
+                if (result.success) setViewOpen(false);
+              }}
+            >
+              {viewingAddLabel}
+            </Button>
           ) : null
         }
       >

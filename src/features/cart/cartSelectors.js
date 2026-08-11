@@ -10,3 +10,6 @@ export const selectCartGrandTotal = (state) =>
     (sum, item) => sum + item.price * item.quantity,
     0,
   );
+
+export const selectIsProductInCart = (productId) => (state) =>
+  state.cart.items.some((item) => item.productId === productId);
