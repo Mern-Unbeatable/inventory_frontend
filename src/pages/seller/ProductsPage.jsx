@@ -14,6 +14,7 @@ import {
   Tag,
   Trash2,
   Weight,
+  ZoomIn,
 } from 'lucide-react';
 import { PageHeader } from '@/components/common/PageHeader.jsx';
 import { SearchBar } from '@/components/common/SearchBar.jsx';
@@ -23,6 +24,7 @@ import { Button } from '@/components/ui/Button.jsx';
 import { Input } from '@/components/forms/Input.jsx';
 import { Textarea } from '@/components/forms/Textarea.jsx';
 import { Select } from '@/components/forms/Select.jsx';
+import { ImageLightbox } from '@/components/dialogs/ImageLightbox.jsx';
 import { Modal } from '@/components/dialogs/Modal.jsx';
 import { ImageUploadField } from '@/components/forms/ImageUploadField.jsx';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog.jsx';
@@ -318,6 +320,7 @@ export default function ProductsPage() {
 
   const [formOpen, setFormOpen] = useState(false);
   const [viewOpen, setViewOpen] = useState(false);
+  const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [viewing, setViewing] = useState(null);
   const [deleting, setDeleting] = useState(null);
@@ -336,6 +339,10 @@ export default function ProductsPage() {
     }
     loadProducts();
   }, [loadProducts, filters.page, filters.search]);
+
+  useEffect(() => {
+    if (!viewOpen) setImagePreviewOpen(false);
+  }, [viewOpen]);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -674,7 +681,10 @@ export default function ProductsPage() {
 
       <Modal
         isOpen={viewOpen}
-        onClose={() => setViewOpen(false)}
+        onClose={() => {
+          setImagePreviewOpen(false);
+          setViewOpen(false);
+        }}
         title='Product Details'
         status={
           !isAdmin && viewing ? (
@@ -709,14 +719,25 @@ export default function ProductsPage() {
             {/* Product Image & Title Section */}
             <div className='rounded-lg border border-slate-200 bg-white p-4'>
               {resolveMediaUrl(viewing.imageUrl) && (
-                <div className='relative mb-4 overflow-hidden rounded-lg bg-slate-100'>
+                <button
+                  type='button'
+                  onClick={() => setImagePreviewOpen(true)}
+                  className='group relative mb-4 block w-full overflow-hidden rounded-lg bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2'
+                  aria-label={`View larger image of ${viewing.title}`}
+                >
                   <img
                     src={resolveMediaUrl(viewing.imageUrl)}
                     alt={viewing.title}
-                    className='h-48 w-full object-cover transition-transform hover:scale-105'
+                    className='h-48 w-full object-cover transition-transform group-hover:scale-105 sm:h-56'
                     loading='lazy'
                   />
-                </div>
+                  <span className='pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/20'>
+                    <span className='flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1.5 text-xs font-medium text-white opacity-0 transition group-hover:opacity-100'>
+                      <ZoomIn className='size-3.5' />
+                      Click to enlarge
+                    </span>
+                  </span>
+                </button>
               )}
 
               <div className='space-y-1'>
@@ -923,6 +944,13 @@ export default function ProductsPage() {
           </div>
         )}
       </Modal>
+
+      <ImageLightbox
+        isOpen={imagePreviewOpen}
+        onClose={() => setImagePreviewOpen(false)}
+        src={resolveMediaUrl(viewing?.imageUrl)}
+        alt={viewing?.title || 'Product image'}
+      />
 
       <SellerSellModal
         isOpen={Boolean(sellTarget)}
