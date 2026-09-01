@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink } from "react-router-dom";
 import {
   Boxes,
   Building2,
@@ -7,54 +7,62 @@ import {
   LayoutDashboard,
   LogOut,
   Package,
+  QrCode,
   ShoppingCart,
   UsersRound,
   Users,
   Warehouse,
-} from 'lucide-react';
-import { appConfig } from '@/config/app.config.js';
-import { useAuth } from '@/features/auth/authHooks.js';
+} from "lucide-react";
+import { appConfig } from "@/config/app.config.js";
+import { useAuth } from "@/features/auth/authHooks.js";
 
 const NAV_ITEMS = [
   {
-    to: '/dashboard',
-    label: 'Dashboard',
+    to: "/dashboard",
+    label: "Dashboard",
     icon: LayoutDashboard,
     customerHidden: true,
   },
-  { to: '/products', label: 'Products', icon: Package },
-  { to: '/cart', label: 'Cart', icon: ShoppingCart, customerOnly: true },
+  { to: "/products", label: "Products", icon: Package },
+  { to: "/cart", label: "Cart", icon: ShoppingCart, customerOnly: true },
   {
-    to: '/inventory',
-    label: 'Inventory',
+    to: "/inventory",
+    label: "Inventory",
     icon: Warehouse,
     customerHidden: true,
   },
   {
-    to: '/customers',
-    label: 'Customers',
+    to: "/customers",
+    label: "Customers",
     icon: UsersRound,
     customerHidden: true,
   },
-  { to: '/invoices', label: 'Invoices', icon: FileText, customerHidden: true },
+  { to: "/invoices", label: "Invoices", icon: FileText, customerHidden: true },
   {
-    to: '/countries',
-    label: 'Countries',
+    to: "/countries",
+    label: "Countries",
     icon: Globe2,
     adminOnly: true,
     customerHidden: true,
   },
   {
-    to: '/branches',
-    label: 'Branches',
+    to: "/branches",
+    label: "Branches",
     icon: Building2,
     adminOnly: true,
     customerHidden: true,
   },
   {
-    to: '/users',
-    label: 'Users',
+    to: "/users",
+    label: "Users",
     icon: Users,
+    adminOnly: true,
+    customerHidden: true,
+  },
+  {
+    to: "/verifications",
+    label: "Verification",
+    icon: QrCode,
     adminOnly: true,
     customerHidden: true,
   },
@@ -68,20 +76,20 @@ export function Sidebar({ onNavigate }) {
     .filter((item) => !item.customerOnly || isCustomer);
 
   return (
-    <aside className='flex h-full flex-col bg-slate-900 text-slate-100'>
-      <div className='flex gap-2.5 border-b border-slate-800 px-5 h-18 items-center justify-start sm:justify-center'>
-        <div className='flex size-9 items-center justify-center rounded-lg bg-primary-500'>
-          <Boxes className='size-5 text-white' />
+    <aside className="flex h-full flex-col bg-slate-900 text-slate-100">
+      <div className="flex gap-2.5 border-b border-slate-800 px-5 h-18 items-center justify-start sm:justify-center">
+        <div className="flex size-9 items-center justify-center rounded-lg bg-primary-500">
+          <Boxes className="size-5 text-white" />
         </div>
-        <div className='min-w-0'>
-          <p className='truncate text-sm font-semibold tracking-tight'>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold tracking-tight">
             {appConfig.appName}
           </p>
-          <p className='text-xs text-slate-400'>Multi-branch stock</p>
+          <p className="text-xs text-slate-400">Multi-branch stock</p>
         </div>
       </div>
 
-      <nav className='flex-1 space-y-1 overflow-y-auto px-3 py-4 scrollbar-thin'>
+      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4 scrollbar-thin">
         {items.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
@@ -90,27 +98,27 @@ export function Sidebar({ onNavigate }) {
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                 isActive
-                  ? 'bg-slate-800 text-white'
-                  : 'text-slate-300 hover:bg-slate-900 hover:text-white'
+                  ? "bg-slate-800 text-white"
+                  : "text-slate-300 hover:bg-slate-900 hover:text-white"
               }`
             }
           >
-            <Icon className='size-4 shrink-0' />
+            <Icon className="size-4 shrink-0" />
             {label}
           </NavLink>
         ))}
       </nav>
 
-      <div className='border-t border-slate-800 p-3'>
+      <div className="border-t border-slate-800 p-3">
         <button
-          type='button'
+          type="button"
           onClick={() => {
             onNavigate?.();
             logout();
           }}
-          className='flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-900 hover:text-white'
+          className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-900 hover:text-white"
         >
-          <LogOut className='size-4' />
+          <LogOut className="size-4" />
           Logout
         </button>
       </div>

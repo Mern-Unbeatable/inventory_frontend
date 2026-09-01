@@ -1,11 +1,12 @@
-import { Navigate, Route, Routes } from 'react-router-dom';
-import { DashboardLayout } from '@/layout/DashboardLayout.jsx';
-import { ProtectedRoute } from './ProtectedRoute.jsx';
-import { HomeRedirect } from './HomeRedirect.jsx';
-import LoginPage from '@/pages/auth/LoginPage.jsx';
-import { sharedRoutes } from './routes/shared.routes.jsx';
-import { sellerRoutes } from './routes/seller.routes.jsx';
-import { adminRoutes } from './routes/admin.routes.jsx';
+import { Navigate, Route, Routes } from "react-router-dom";
+import { DashboardLayout } from "@/layout/DashboardLayout.jsx";
+import { ProtectedRoute } from "./ProtectedRoute.jsx";
+import { HomeRedirect } from "./HomeRedirect.jsx";
+import LoginPage from "@/pages/auth/LoginPage.jsx";
+import VerifyPage from "@/pages/public/VerifyPage.jsx";
+import { sharedRoutes } from "./routes/shared.routes.jsx";
+import { sellerRoutes } from "./routes/seller.routes.jsx";
+import { adminRoutes } from "./routes/admin.routes.jsx";
 
 /**
  * App router — grouped by access level.
@@ -23,7 +24,10 @@ export function AppRouter() {
   return (
     <Routes>
       {/* ── Auth (public) ─────────────────────────────────────────── */}
-      <Route path='/login' element={<LoginPage />} />
+      <Route path="/login" element={<LoginPage />} />
+
+      {/* ── Public product verification (no auth) ─────────────────── */}
+      <Route path="/verify/:qrId" element={<VerifyPage />} />
 
       {/* ── Authenticated shell ───────────────────────────────────── */}
       <Route element={<ProtectedRoute />}>
@@ -41,7 +45,7 @@ export function AppRouter() {
         </Route>
       </Route>
 
-      <Route path='*' element={<Navigate to='/' replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
