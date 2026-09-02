@@ -17,6 +17,7 @@ export const HTTP_ENDPOINTS = {
   COUNTRIES: {
     BASE: "/countries",
     BY_ID: (id) => `/countries/${id}`,
+    BULK_DELETE: "/countries/bulk",
   },
   BRANCHES: {
     BASE: "/branches",

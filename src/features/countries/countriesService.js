@@ -1,5 +1,5 @@
-import { countriesAPI } from './countriesAPI.js';
-import { unwrapData, unwrapList } from '@/config/api/config.response.js';
+import { countriesAPI } from "./countriesAPI.js";
+import { unwrapData, unwrapList } from "@/config/api/config.response.js";
 
 export const countriesService = {
   async list() {
@@ -7,7 +7,15 @@ export const countriesService = {
     // Countries endpoint returns a plain array in data
     const payload = unwrapData(data);
     if (Array.isArray(payload)) {
-      return { items: payload, meta: { page: 1, limit: payload.length, total: payload.length, totalPages: 1 } };
+      return {
+        items: payload,
+        meta: {
+          page: 1,
+          limit: payload.length,
+          total: payload.length,
+          totalPages: 1,
+        },
+      };
     }
     return unwrapList(data);
   },
@@ -21,5 +29,9 @@ export const countriesService = {
   },
   async remove(id) {
     await countriesAPI.remove(id);
+  },
+  async bulkRemove(ids) {
+    const { data } = await countriesAPI.bulkRemove(ids);
+    return unwrapData(data);
   },
 };
