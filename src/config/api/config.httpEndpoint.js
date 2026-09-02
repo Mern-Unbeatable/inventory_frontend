@@ -66,6 +66,7 @@ export const HTTP_ENDPOINTS = {
   VERIFICATIONS: {
     BASE: "/verifications",
     BY_ID: (id) => `/verifications/${id}`,
+    BULK_DELETE: "/verifications/bulk",
     PUBLIC_VERIFY: (qrId) => `/verify/${qrId}`,
   },
 };

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -9,6 +9,7 @@ import {
   Pencil,
   Plus,
   Trash2,
+  TrashIcon,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { PageHeader } from "@/components/common/PageHeader.jsx";
@@ -276,6 +277,7 @@ export default function VerificationsPage() {
     createVerification,
     updateVerification,
     deleteVerification,
+    bulkDeleteVerification,
   } = useVerifications();
 
   const { items: products, loadProducts } = useProducts();
@@ -283,7 +285,10 @@ export default function VerificationsPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [deleting, setDeleting] = useState(null);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const [viewing, setViewing] = useState(null);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const selectAllCheckboxRef = useRef(null);
 
   useEffect(() => {
     loadProducts({ limit: 100 });
@@ -302,7 +307,64 @@ export default function VerificationsPage() {
     [products],
   );
 
+  const visibleIds = useMemo(() => items.map((row) => row.id), [items]);
+  const selectedVisibleIds = visibleIds.filter((id) =>
+    selectedIds.includes(id),
+  );
+  const allVisibleSelected =
+    visibleIds.length > 0 && selectedVisibleIds.length === visibleIds.length;
+  const someVisibleSelected =
+    selectedVisibleIds.length > 0 &&
+    selectedVisibleIds.length < visibleIds.length;
+
+  useEffect(() => {
+    if (selectAllCheckboxRef.current) {
+      selectAllCheckboxRef.current.indeterminate =
+        someVisibleSelected && !allVisibleSelected;
+    }
+  }, [allVisibleSelected, someVisibleSelected]);
+
+  const toggleSelectRow = (id) => {
+    setSelectedIds((current) =>
+      current.includes(id)
+        ? current.filter((selectedId) => selectedId !== id)
+        : [...current, id],
+    );
+  };
+
+  const toggleSelectAllVisible = () => {
+    setSelectedIds((current) => {
+      const isAllSelected = visibleIds.every((id) => current.includes(id));
+      if (isAllSelected) {
+        return current.filter((id) => !visibleIds.includes(id));
+      }
+      return Array.from(new Set([...current, ...visibleIds]));
+    });
+  };
+
   const columns = [
+    {
+      key: "select",
+      header: (
+        <input
+          ref={selectAllCheckboxRef}
+          type="checkbox"
+          checked={visibleIds.length > 0 && allVisibleSelected}
+          onChange={toggleSelectAllVisible}
+          aria-label="Select all visible QR codes"
+          className="h-4 w-4 rounded border-slate-300 text-slate-800 focus:ring-slate-500"
+        />
+      ),
+      render: (row) => (
+        <input
+          type="checkbox"
+          checked={selectedIds.includes(row.id)}
+          onChange={() => toggleSelectRow(row.id)}
+          aria-label={`Select ${row.qrId}`}
+          className="h-4 w-4 rounded border-slate-300 text-slate-800 focus:ring-slate-500"
+        />
+      ),
+    },
     {
       key: "qrId",
       header: "QR ID",
@@ -406,23 +468,57 @@ export default function VerificationsPage() {
         }
       />
 
-      <div className="mb-4 flex flex-wrap gap-3">
-        <div className="w-full max-w-xs">
-          <Select
-            value={filters.status}
-            onChange={(event) =>
-              updateFilters({ status: event.target.value, page: 1 })
-            }
-            options={[{ value: "", label: "All statuses" }, ...STATUS_OPTIONS]}
-          />
+      <div className="mb-4 flex items-center justify-between gap-4">
+        {/* Left Side: Filters */}
+        <div className="flex items-center gap-3">
+          <div className="w-90">
+            <SearchBar
+              value={filters.search}
+              placeholder="Search by QR ID…"
+              onSearch={(search) => updateFilters({ search, page: 1 })}
+            />
+          </div>
+
+          <div className="w-60">
+            <Select
+              value={filters.status}
+              onChange={(event) =>
+                updateFilters({ status: event.target.value, page: 1 })
+              }
+              options={[
+                { value: "", label: "All statuses" },
+                ...STATUS_OPTIONS,
+              ]}
+            />
+          </div>
         </div>
-        <div className="w-full max-w-sm">
-          <SearchBar
-            value={filters.search}
-            placeholder="Search by QR ID…"
-            onSearch={(search) => updateFilters({ search, page: 1 })}
-          />
-        </div>
+
+        {/* Right Side: Bulk Actions */}
+        {selectedIds.length > 0 && (
+          <div className="flex shrink-0 items-center gap-6 ">
+            <span className="text-sm font-medium text-slate-700">
+              {selectedIds.length} selected
+            </span>
+
+            <button
+              type="button"
+              onClick={() => setSelectedIds([])}
+              className="text-sm font-medium text-red-600 transition hover:underline"
+            >
+              Clear
+            </button>
+
+            <Button
+              variant="danger"
+              size="sm"
+              disabled={isMutating}
+              onClick={() => setBulkDeleting(true)}
+            >
+              <TrashIcon className="h-4 w-4" />
+              Delete selected
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -475,13 +571,31 @@ export default function VerificationsPage() {
       />
 
       <ConfirmDialog
-        isOpen={Boolean(deleting)}
-        onClose={() => setDeleting(null)}
-        title="Delete QR mapping?"
-        description={`This will remove the mapping for “${deleting?.qrId}” and its scan history. The product itself is not affected.`}
-        confirmLabel="Delete"
+        isOpen={Boolean(deleting) || bulkDeleting}
+        onClose={() => {
+          setDeleting(null);
+          setBulkDeleting(false);
+        }}
+        title={
+          bulkDeleting ? "Delete selected QR mappings?" : "Delete QR mapping?"
+        }
+        description={
+          bulkDeleting
+            ? `This will remove ${selectedIds.length} QR mapping${selectedIds.length === 1 ? "" : "s"} and their scan history. The product itself is not affected.`
+            : `This will remove the mapping for “${deleting?.qrId}” and its scan history. The product itself is not affected.`
+        }
+        confirmLabel={bulkDeleting ? "Delete selected" : "Delete"}
         isLoading={isMutating}
         onConfirm={async () => {
+          if (bulkDeleting) {
+            const result = await bulkDeleteVerification(selectedIds);
+            if (result.success) {
+              setSelectedIds([]);
+              setBulkDeleting(false);
+            }
+            return;
+          }
+
           const result = await deleteVerification(deleting.id);
           if (result.success) setDeleting(null);
         }}

@@ -53,6 +53,18 @@ export const deleteVerificationThunk = createAsyncThunk(
   },
 );
 
+export const bulkDeleteVerificationsThunk = createAsyncThunk(
+  "verifications/bulkDelete",
+  async (ids, { rejectWithValue }) => {
+    try {
+      const result = await verificationService.bulkRemove(ids);
+      return result;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  },
+);
+
 const initialState = {
   items: [],
   meta: {

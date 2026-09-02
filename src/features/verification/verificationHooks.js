@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import {
+  bulkDeleteVerificationsThunk,
   createVerificationThunk,
   deleteVerificationThunk,
   fetchVerificationsThunk,
@@ -80,6 +81,26 @@ export const useVerifications = () => {
     [dispatch],
   );
 
+  const bulkDeleteVerification = useCallback(
+    async (ids) => {
+      const result = await dispatch(bulkDeleteVerificationsThunk(ids));
+      if (bulkDeleteVerificationsThunk.fulfilled.match(result)) {
+        toast.success(
+          result.payload?.deletedCount > 1
+            ? `${result.payload.deletedCount} QR mappings deleted`
+            : "QR mapping deleted",
+        );
+        dispatch(fetchVerificationsThunk());
+        return { success: true };
+      }
+      toast.error(
+        result.payload?.message || "Failed to delete selected QR mappings",
+      );
+      return { success: false, error: result.payload };
+    },
+    [dispatch],
+  );
+
   return {
     items,
     meta,
@@ -94,5 +115,6 @@ export const useVerifications = () => {
     createVerification,
     updateVerification,
     deleteVerification,
+    bulkDeleteVerification,
   };
 };

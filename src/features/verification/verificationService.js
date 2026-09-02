@@ -26,6 +26,11 @@ export const verificationService = {
     await verificationAPI.remove(id);
   },
 
+  async bulkRemove(ids) {
+    const { data } = await verificationAPI.bulkRemove(ids);
+    return unwrapData(data);
+  },
+
   async verify(qrId) {
     const { data } = await verificationAPI.verify(qrId);
     return unwrapData(data);

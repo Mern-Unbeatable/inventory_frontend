@@ -10,6 +10,10 @@ export const verificationAPI = {
   update: (id, payload) =>
     apiClient.patch(HTTP_ENDPOINTS.VERIFICATIONS.BY_ID(id), payload),
   remove: (id) => apiClient.delete(HTTP_ENDPOINTS.VERIFICATIONS.BY_ID(id)),
+  bulkRemove: (ids) =>
+    apiClient.delete(HTTP_ENDPOINTS.VERIFICATIONS.BULK_DELETE, {
+      data: { ids },
+    }),
   // Public — no auth required.
   verify: (qrId) =>
     apiClient.get(HTTP_ENDPOINTS.VERIFICATIONS.PUBLIC_VERIFY(qrId)),
