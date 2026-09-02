@@ -201,7 +201,7 @@ function VerificationDetailsModal({ isOpen, onClose, verification }) {
           </dl>
 
           {/* Status badge with icon */}
-          <div className="flex items-center gap-3 p-4 rounded-lg bg-green-50 border border-slate-200">
+          <div className="flex items-center gap-3 p-2 rounded-lg bg-green-50 border border-slate-200">
             <div
               className={`
           w-3 h-3 rounded-full flex-shrink-0
