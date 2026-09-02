@@ -12,6 +12,7 @@ export const HTTP_ENDPOINTS = {
   USERS: {
     BASE: "/users",
     BY_ID: (id) => `/users/${id}`,
+    BULK_DELETE: "/users/bulk",
   },
   COUNTRIES: {
     BASE: "/countries",

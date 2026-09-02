@@ -1,7 +1,8 @@
-import { useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import toast from 'react-hot-toast';
+import { useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import toast from "react-hot-toast";
 import {
+  bulkDeleteUsersThunk,
   clearCurrentUser,
   createUserThunk,
   deleteUserThunk,
@@ -9,7 +10,7 @@ import {
   fetchUsersThunk,
   setUserFilters,
   updateUserThunk,
-} from './usersSlice.js';
+} from "./usersSlice.js";
 import {
   selectCurrentUser,
   selectUserFilters,
@@ -20,7 +21,7 @@ import {
   selectUsersError,
   selectUsersMutationStatus,
   selectUsersStatus,
-} from './usersSelectors.js';
+} from "./usersSelectors.js";
 
 export const useUsers = () => {
   const dispatch = useDispatch();
@@ -35,11 +36,14 @@ export const useUsers = () => {
   const detailError = useSelector(selectUsersDetailError);
 
   const loadUsers = useCallback(() => dispatch(fetchUsersThunk()), [dispatch]);
-  const updateFilters = useCallback((next) => dispatch(setUserFilters(next)), [dispatch]);
+  const updateFilters = useCallback(
+    (next) => dispatch(setUserFilters(next)),
+    [dispatch],
+  );
 
   const loadUserById = useCallback(
     (id) => dispatch(fetchUserByIdThunk(id)),
-    [dispatch]
+    [dispatch],
   );
 
   const clearUser = useCallback(() => dispatch(clearCurrentUser()), [dispatch]);
@@ -48,42 +52,60 @@ export const useUsers = () => {
     async (payload) => {
       const result = await dispatch(createUserThunk(payload));
       if (createUserThunk.fulfilled.match(result)) {
-        toast.success('User created');
+        toast.success("User created");
         dispatch(fetchUsersThunk());
         return { success: true };
       }
-      toast.error(result.payload?.message || 'Failed to create user');
+      toast.error(result.payload?.message || "Failed to create user");
       return { success: false, error: result.payload };
     },
-    [dispatch]
+    [dispatch],
   );
 
   const updateUser = useCallback(
     async (id, payload) => {
       const result = await dispatch(updateUserThunk({ id, payload }));
       if (updateUserThunk.fulfilled.match(result)) {
-        toast.success('User updated');
+        toast.success("User updated");
         dispatch(fetchUsersThunk());
         return { success: true, user: result.payload };
       }
-      toast.error(result.payload?.message || 'Failed to update user');
+      toast.error(result.payload?.message || "Failed to update user");
       return { success: false, error: result.payload };
     },
-    [dispatch]
+    [dispatch],
   );
 
   const deleteUser = useCallback(
     async (id) => {
       const result = await dispatch(deleteUserThunk(id));
       if (deleteUserThunk.fulfilled.match(result)) {
-        toast.success('User deleted');
+        toast.success("User deleted");
         dispatch(fetchUsersThunk());
         return { success: true };
       }
-      toast.error(result.payload?.message || 'Failed to delete user');
+      toast.error(result.payload?.message || "Failed to delete user");
       return { success: false, error: result.payload };
     },
-    [dispatch]
+    [dispatch],
+  );
+
+  const bulkDeleteUsers = useCallback(
+    async (ids) => {
+      const result = await dispatch(bulkDeleteUsersThunk(ids));
+      if (bulkDeleteUsersThunk.fulfilled.match(result)) {
+        toast.success(
+          result.payload?.deletedCount > 1
+            ? `${result.payload.deletedCount} users deleted`
+            : "User deleted",
+        );
+        dispatch(fetchUsersThunk());
+        return { success: true };
+      }
+      toast.error(result.payload?.message || "Failed to delete selected users");
+      return { success: false, error: result.payload };
+    },
+    [dispatch],
   );
 
   return {
@@ -96,9 +118,9 @@ export const useUsers = () => {
     mutationStatus,
     error,
     detailError,
-    isLoading: status === 'loading',
-    isDetailLoading: detailStatus === 'loading',
-    isMutating: mutationStatus === 'loading',
+    isLoading: status === "loading",
+    isDetailLoading: detailStatus === "loading",
+    isMutating: mutationStatus === "loading",
     loadUsers,
     loadUserById,
     clearUser,
@@ -106,5 +128,6 @@ export const useUsers = () => {
     createUser,
     updateUser,
     deleteUser,
+    bulkDeleteUsers,
   };
 };

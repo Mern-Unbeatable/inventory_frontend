@@ -1,30 +1,40 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, Pencil, Plus, Trash2 } from 'lucide-react';
-import { PageHeader } from '@/components/common/PageHeader.jsx';
-import { SearchBar } from '@/components/common/SearchBar.jsx';
-import { Table } from '@/components/tables/Table.jsx';
-import { Pagination } from '@/components/tables/Pagination.jsx';
-import { Button } from '@/components/ui/Button.jsx';
-import { Input } from '@/components/forms/Input.jsx';
-import { Select } from '@/components/forms/Select.jsx';
-import { Modal } from '@/components/dialogs/Modal.jsx';
-import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog.jsx';
-import { ErrorState } from '@/components/ui/ErrorState.jsx';
-import { RoleChip } from '@/components/ui/StatusChip.jsx';
-import { useUsers } from '@/features/users/usersHooks.js';
-import { useBranches } from '@/features/branches/branchesHooks.js';
-import { createUserSchema, updateUserSchema } from '@/features/users/usersValidation.js';
-import { formatDate } from '@/utils/format/date.js';
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, Pencil, Plus, Trash2 } from "lucide-react";
+import { PageHeader } from "@/components/common/PageHeader.jsx";
+import { SearchBar } from "@/components/common/SearchBar.jsx";
+import { Table } from "@/components/tables/Table.jsx";
+import { Pagination } from "@/components/tables/Pagination.jsx";
+import { Button } from "@/components/ui/Button.jsx";
+import { Input } from "@/components/forms/Input.jsx";
+import { Select } from "@/components/forms/Select.jsx";
+import { Modal } from "@/components/dialogs/Modal.jsx";
+import { ConfirmDialog } from "@/components/dialogs/ConfirmDialog.jsx";
+import { ErrorState } from "@/components/ui/ErrorState.jsx";
+import { RoleChip } from "@/components/ui/StatusChip.jsx";
+import { useUsers } from "@/features/users/usersHooks.js";
+import { useBranches } from "@/features/branches/branchesHooks.js";
+import {
+  createUserSchema,
+  updateUserSchema,
+} from "@/features/users/usersValidation.js";
+import { formatDate } from "@/utils/format/date.js";
 
 const ROLE_OPTIONS = [
-  { value: 'SELLER', label: 'Seller' },
-  { value: 'ADMIN', label: 'Admin' },
+  { value: "SELLER", label: "Seller" },
+  { value: "ADMIN", label: "Admin" },
 ];
 
-function UserFormModal({ isOpen, onClose, user, branches, onSubmit, isLoading }) {
+function UserFormModal({
+  isOpen,
+  onClose,
+  user,
+  branches,
+  onSubmit,
+  isLoading,
+}) {
   const isEdit = Boolean(user);
   const {
     register,
@@ -34,10 +44,16 @@ function UserFormModal({ isOpen, onClose, user, branches, onSubmit, isLoading })
     formState: { errors },
   } = useForm({
     resolver: zodResolver(isEdit ? updateUserSchema : createUserSchema),
-    defaultValues: { name: '', email: '', password: '', role: 'SELLER', branchId: '' },
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+      role: "SELLER",
+      branchId: "",
+    },
   });
 
-  const role = watch('role');
+  const role = watch("role");
 
   useEffect(() => {
     if (!isOpen) return;
@@ -46,11 +62,11 @@ function UserFormModal({ isOpen, onClose, user, branches, onSubmit, isLoading })
         ? {
             name: user.name,
             email: user.email,
-            password: '',
+            password: "",
             role: user.role,
-            branchId: user.branchId || '',
+            branchId: user.branchId || "",
           }
-        : { name: '', email: '', password: '', role: 'SELLER', branchId: '' }
+        : { name: "", email: "", password: "", role: "SELLER", branchId: "" },
     );
   }, [isOpen, user, reset]);
 
@@ -58,9 +74,11 @@ function UserFormModal({ isOpen, onClose, user, branches, onSubmit, isLoading })
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={isEdit ? 'Edit user' : 'Create user'}
+      title={isEdit ? "Edit user" : "Create user"}
       description={
-        isEdit ? 'Leave password blank to keep the current one' : 'Create an admin or seller account'
+        isEdit
+          ? "Leave password blank to keep the current one"
+          : "Create an admin or seller account"
       }
       footer={
         <>
@@ -68,36 +86,47 @@ function UserFormModal({ isOpen, onClose, user, branches, onSubmit, isLoading })
             Cancel
           </Button>
           <Button onClick={handleSubmit(onSubmit)} isLoading={isLoading}>
-            {isEdit ? 'Save changes' : 'Create user'}
+            {isEdit ? "Save changes" : "Create user"}
           </Button>
         </>
       }
     >
       <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-        <Input id="name" label="Name" error={errors.name?.message} {...register('name')} />
-        <Input id="email" label="Email" type="email" error={errors.email?.message} {...register('email')} />
+        <Input
+          id="name"
+          label="Name"
+          error={errors.name?.message}
+          {...register("name")}
+        />
+        <Input
+          id="email"
+          label="Email"
+          type="email"
+          error={errors.email?.message}
+          {...register("email")}
+        />
         <Input
           id="password"
-          label={isEdit ? 'New password' : 'Password'}
+          label={isEdit ? "New password" : "Password"}
           type="password"
           error={errors.password?.message}
-          {...register('password')}
+          {...register("password")}
         />
         <Select
           id="role"
           label="Role"
           options={ROLE_OPTIONS}
           error={errors.role?.message}
-          {...register('role')}
+          {...register("role")}
         />
-        {(role === 'SELLER' || (!role && isEdit)) && (
+        {(role === "SELLER" || (!role && isEdit)) && (
           <Select
             id="branchId"
             label="Branch"
             placeholder="Select branch"
             options={branches}
             error={errors.branchId?.message}
-            {...register('branchId')}
+            {...register("branchId")}
           />
         )}
       </form>
@@ -120,16 +149,24 @@ export default function UsersPage() {
     createUser,
     updateUser,
     deleteUser,
+    bulkDeleteUsers,
   } = useUsers();
 
-  const { items: branches, loadBranches, updateFilters: updateBranchFilters } = useBranches();
+  const {
+    items: branches,
+    loadBranches,
+    updateFilters: updateBranchFilters,
+  } = useBranches();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [deleting, setDeleting] = useState(null);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const selectAllCheckboxRef = useRef(null);
 
   useEffect(() => {
-    updateBranchFilters({ page: 1, limit: 100, search: '', countryId: '' });
+    updateBranchFilters({ page: 1, limit: 100, search: "", countryId: "" });
     loadBranches();
   }, [loadBranches, updateBranchFilters]);
 
@@ -138,27 +175,98 @@ export default function UsersPage() {
   }, [loadUsers, filters.page, filters.search, filters.role]);
 
   const branchOptions = useMemo(
-    () => branches.map((b) => ({ value: b.id, label: `${b.name}${b.country?.name ? ` (${b.country.name})` : ''}` })),
-    [branches]
+    () =>
+      branches.map((b) => ({
+        value: b.id,
+        label: `${b.name}${b.country?.name ? ` (${b.country.name})` : ""}`,
+      })),
+    [branches],
   );
+
+  const visibleIds = useMemo(() => items.map((row) => row.id), [items]);
+  const selectedVisibleIds = visibleIds.filter((id) =>
+    selectedIds.includes(id),
+  );
+  const allVisibleSelected =
+    visibleIds.length > 0 && selectedVisibleIds.length === visibleIds.length;
+  const someVisibleSelected =
+    selectedVisibleIds.length > 0 &&
+    selectedVisibleIds.length < visibleIds.length;
+
+  useEffect(() => {
+    if (selectAllCheckboxRef.current) {
+      selectAllCheckboxRef.current.indeterminate =
+        someVisibleSelected && !allVisibleSelected;
+    }
+  }, [allVisibleSelected, someVisibleSelected]);
+
+  const toggleSelectRow = (id) => {
+    setSelectedIds((current) =>
+      current.includes(id)
+        ? current.filter((selectedId) => selectedId !== id)
+        : [...current, id],
+    );
+  };
+
+  const toggleSelectAllVisible = () => {
+    setSelectedIds((current) => {
+      const isAllSelected = visibleIds.every((id) => current.includes(id));
+      if (isAllSelected) {
+        return current.filter((id) => !visibleIds.includes(id));
+      }
+      return Array.from(new Set([...current, ...visibleIds]));
+    });
+  };
 
   const columns = [
     {
-      key: 'name',
-      header: 'Name',
-      render: (row) => <span className="font-medium text-slate-900">{row.name}</span>,
+      key: "select",
+      header: (
+        <input
+          ref={selectAllCheckboxRef}
+          type="checkbox"
+          checked={visibleIds.length > 0 && allVisibleSelected}
+          onChange={toggleSelectAllVisible}
+          aria-label="Select all visible users"
+          className="h-4 w-4 rounded border-slate-300 text-slate-800 focus:ring-slate-500"
+        />
+      ),
+      render: (row) => (
+        <input
+          type="checkbox"
+          checked={selectedIds.includes(row.id)}
+          onChange={() => toggleSelectRow(row.id)}
+          aria-label={`Select ${row.name}`}
+          className="h-4 w-4 rounded border-slate-300 text-slate-800 focus:ring-slate-500"
+        />
+      ),
     },
-    { key: 'email', header: 'Email' },
-    { key: 'role', header: 'Role', render: (row) => <RoleChip role={row.role} /> },
     {
-      key: 'branch',
-      header: 'Branch',
-      render: (row) => row.branch?.name || '—',
+      key: "name",
+      header: "Name",
+      render: (row) => (
+        <span className="font-medium text-slate-900">{row.name}</span>
+      ),
     },
-    { key: 'createdAt', header: 'Created', render: (row) => formatDate(row.createdAt) },
+    { key: "email", header: "Email" },
     {
-      key: 'actions',
-      header: 'Actions',
+      key: "role",
+      header: "Role",
+      render: (row) => <RoleChip role={row.role} />,
+    },
+    {
+      key: "branch",
+      header: "Branch",
+      render: (row) => row.branch?.name || "—",
+    },
+    {
+      key: "createdAt",
+      header: "Created",
+      render: (row) => formatDate(row.createdAt),
+    },
+    {
+      key: "actions",
+      header: "Actions",
       render: (row) => (
         <div className="flex items-center gap-1">
           <Button
@@ -193,17 +301,25 @@ export default function UsersPage() {
   const handleSubmit = async (values) => {
     const payload = { ...values };
     if (editing && !payload.password) delete payload.password;
-    if (payload.role === 'ADMIN' && !payload.branchId) payload.branchId = null;
+    if (payload.role === "ADMIN" && !payload.branchId) payload.branchId = null;
 
-    const result = editing ? await updateUser(editing.id, payload) : await createUser(payload);
+    const result = editing
+      ? await updateUser(editing.id, payload)
+      : await createUser(payload);
     if (result.success) {
       setFormOpen(false);
       setEditing(null);
     }
   };
 
-  if (status === 'failed' && !items.length) {
-    return <ErrorState title="Could not load users" description={error} onRetry={loadUsers} />;
+  if (status === "failed" && !items.length) {
+    return (
+      <ErrorState
+        title="Could not load users"
+        description={error}
+        onRetry={loadUsers}
+      />
+    );
   }
 
   return (
@@ -224,24 +340,61 @@ export default function UsersPage() {
         }
       />
 
-      <div className="mb-4 flex flex-wrap gap-3">
-        <div className="w-full max-w-xs">
-          <Select
-            value={filters.role}
-            onChange={(event) => updateFilters({ role: event.target.value, page: 1 })}
-            options={[
-              { value: '', label: 'All roles' },
-              ...ROLE_OPTIONS,
-            ]}
-          />
+      <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        {/* Left Side: Filters */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="w-full sm:w-[240px]">
+            <Select
+              value={filters.role}
+              onChange={(event) =>
+                updateFilters({
+                  role: event.target.value,
+                  page: 1,
+                })
+              }
+              options={[{ value: "", label: "All roles" }, ...ROLE_OPTIONS]}
+            />
+          </div>
+
+          <div className="w-full sm:w-[360px]">
+            <SearchBar
+              value={filters.search}
+              placeholder="Search by name or email…"
+              onSearch={(search) =>
+                updateFilters({
+                  search,
+                  page: 1,
+                })
+              }
+            />
+          </div>
         </div>
-        <div className="w-full max-w-sm">
-          <SearchBar
-            value={filters.search}
-            placeholder="Search by name or email…"
-            onSearch={(search) => updateFilters({ search, page: 1 })}
-          />
-        </div>
+
+        {/* Right Side: Bulk Actions */}
+        {selectedIds.length > 0 && (
+          <div className="flex shrink-0 items-center gap-5">
+            <span className="text-sm font-medium text-slate-700">
+              {selectedIds.length} selected
+            </span>
+
+            <button
+              type="button"
+              onClick={() => setSelectedIds([])}
+              className="text-sm font-medium text-red-600 transition hover:underline"
+            >
+              Clear
+            </button>
+
+            <Button
+              variant="danger"
+              size="sm"
+              disabled={isMutating}
+              onClick={() => setBulkDeleting(true)}
+            >
+              Delete selected
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -275,13 +428,29 @@ export default function UsersPage() {
       />
 
       <ConfirmDialog
-        isOpen={Boolean(deleting)}
-        onClose={() => setDeleting(null)}
-        title="Delete user?"
-        description={`This will permanently remove “${deleting?.name}” and their inventory assignments.`}
-        confirmLabel="Delete"
+        isOpen={Boolean(deleting) || bulkDeleting}
+        onClose={() => {
+          setDeleting(null);
+          setBulkDeleting(false);
+        }}
+        title={bulkDeleting ? "Delete selected users?" : "Delete user?"}
+        description={
+          bulkDeleting
+            ? `This will permanently remove ${selectedIds.length} user${selectedIds.length === 1 ? "" : "s"} and their related records.`
+            : `This will permanently remove “${deleting?.name}” and their inventory assignments.`
+        }
+        confirmLabel={bulkDeleting ? "Delete selected" : "Delete"}
         isLoading={isMutating}
         onConfirm={async () => {
+          if (bulkDeleting) {
+            const result = await bulkDeleteUsers(selectedIds);
+            if (result.success) {
+              setSelectedIds([]);
+              setBulkDeleting(false);
+            }
+            return;
+          }
+
           const result = await deleteUser(deleting.id);
           if (result.success) setDeleting(null);
         }}

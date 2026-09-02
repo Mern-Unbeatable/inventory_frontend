@@ -468,10 +468,10 @@ export default function VerificationsPage() {
         }
       />
 
-      <div className="mb-4 flex items-center justify-between gap-4">
-        {/* Left Side: Filters */}
-        <div className="flex items-center gap-3">
-          <div className="w-90">
+      <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        {/* Left Side */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="w-full sm:w-[360px]">
             <SearchBar
               value={filters.search}
               placeholder="Search by QR ID…"
@@ -479,11 +479,14 @@ export default function VerificationsPage() {
             />
           </div>
 
-          <div className="w-60">
+          <div className="w-full sm:w-[240px]">
             <Select
               value={filters.status}
               onChange={(event) =>
-                updateFilters({ status: event.target.value, page: 1 })
+                updateFilters({
+                  status: event.target.value,
+                  page: 1,
+                })
               }
               options={[
                 { value: "", label: "All statuses" },
@@ -493,9 +496,9 @@ export default function VerificationsPage() {
           </div>
         </div>
 
-        {/* Right Side: Bulk Actions */}
+        {/* Right Side */}
         {selectedIds.length > 0 && (
-          <div className="flex shrink-0 items-center gap-6 ">
+          <div className="flex shrink-0 items-center gap-5">
             <span className="text-sm font-medium text-slate-700">
               {selectedIds.length} selected
             </span>

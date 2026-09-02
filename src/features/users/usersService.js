@@ -1,5 +1,5 @@
-import { usersAPI } from './usersAPI.js';
-import { unwrapData, unwrapList } from '@/config/api/config.response.js';
+import { usersAPI } from "./usersAPI.js";
+import { unwrapData, unwrapList } from "@/config/api/config.response.js";
 
 export const usersService = {
   async list(params) {
@@ -20,5 +20,9 @@ export const usersService = {
   },
   async remove(id) {
     await usersAPI.remove(id);
+  },
+  async bulkRemove(ids) {
+    const { data } = await usersAPI.bulkRemove(ids);
+    return unwrapData(data);
   },
 };
