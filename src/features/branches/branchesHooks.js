@@ -1,13 +1,14 @@
-import { useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import toast from 'react-hot-toast';
+import { useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import toast from "react-hot-toast";
 import {
+  bulkDeleteBranchesThunk,
   createBranchThunk,
   deleteBranchThunk,
   fetchBranchesThunk,
   setBranchFilters,
   updateBranchThunk,
-} from './branchesSlice.js';
+} from "./branchesSlice.js";
 import {
   selectBranchFilters,
   selectBranchItems,
@@ -15,7 +16,7 @@ import {
   selectBranchesError,
   selectBranchesMutationStatus,
   selectBranchesStatus,
-} from './branchesSelectors.js';
+} from "./branchesSelectors.js";
 
 export const useBranches = () => {
   const dispatch = useDispatch();
@@ -26,50 +27,76 @@ export const useBranches = () => {
   const mutationStatus = useSelector(selectBranchesMutationStatus);
   const error = useSelector(selectBranchesError);
 
-  const loadBranches = useCallback(() => dispatch(fetchBranchesThunk()), [dispatch]);
+  const loadBranches = useCallback(
+    () => dispatch(fetchBranchesThunk()),
+    [dispatch],
+  );
 
-  const updateFilters = useCallback((next) => dispatch(setBranchFilters(next)), [dispatch]);
+  const updateFilters = useCallback(
+    (next) => dispatch(setBranchFilters(next)),
+    [dispatch],
+  );
 
   const createBranch = useCallback(
     async (payload) => {
       const result = await dispatch(createBranchThunk(payload));
       if (createBranchThunk.fulfilled.match(result)) {
-        toast.success('Branch created');
+        toast.success("Branch created");
         dispatch(fetchBranchesThunk());
         return { success: true };
       }
-      toast.error(result.payload?.message || 'Failed to create branch');
+      toast.error(result.payload?.message || "Failed to create branch");
       return { success: false, error: result.payload };
     },
-    [dispatch]
+    [dispatch],
   );
 
   const updateBranch = useCallback(
     async (id, payload) => {
       const result = await dispatch(updateBranchThunk({ id, payload }));
       if (updateBranchThunk.fulfilled.match(result)) {
-        toast.success('Branch updated');
+        toast.success("Branch updated");
         dispatch(fetchBranchesThunk());
         return { success: true };
       }
-      toast.error(result.payload?.message || 'Failed to update branch');
+      toast.error(result.payload?.message || "Failed to update branch");
       return { success: false, error: result.payload };
     },
-    [dispatch]
+    [dispatch],
   );
 
   const deleteBranch = useCallback(
     async (id) => {
       const result = await dispatch(deleteBranchThunk(id));
       if (deleteBranchThunk.fulfilled.match(result)) {
-        toast.success('Branch deleted');
+        toast.success("Branch deleted");
         dispatch(fetchBranchesThunk());
         return { success: true };
       }
-      toast.error(result.payload?.message || 'Failed to delete branch');
+      toast.error(result.payload?.message || "Failed to delete branch");
       return { success: false, error: result.payload };
     },
-    [dispatch]
+    [dispatch],
+  );
+
+  const bulkDeleteBranches = useCallback(
+    async (ids) => {
+      const result = await dispatch(bulkDeleteBranchesThunk(ids));
+      if (bulkDeleteBranchesThunk.fulfilled.match(result)) {
+        toast.success(
+          result.payload?.deletedCount > 1
+            ? `${result.payload.deletedCount} branches deleted`
+            : "Branch deleted",
+        );
+        dispatch(fetchBranchesThunk());
+        return { success: true };
+      }
+      toast.error(
+        result.payload?.message || "Failed to delete selected branches",
+      );
+      return { success: false, error: result.payload };
+    },
+    [dispatch],
   );
 
   return {
@@ -79,12 +106,13 @@ export const useBranches = () => {
     status,
     mutationStatus,
     error,
-    isLoading: status === 'loading',
-    isMutating: mutationStatus === 'loading',
+    isLoading: status === "loading",
+    isMutating: mutationStatus === "loading",
     loadBranches,
     updateFilters,
     createBranch,
     updateBranch,
     deleteBranch,
+    bulkDeleteBranches,
   };
 };

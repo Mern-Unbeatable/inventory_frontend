@@ -1,5 +1,5 @@
-import { branchesAPI } from './branchesAPI.js';
-import { unwrapData, unwrapList } from '@/config/api/config.response.js';
+import { branchesAPI } from "./branchesAPI.js";
+import { unwrapData, unwrapList } from "@/config/api/config.response.js";
 
 export const branchesService = {
   async list(params) {
@@ -16,5 +16,9 @@ export const branchesService = {
   },
   async remove(id) {
     await branchesAPI.remove(id);
+  },
+  async bulkRemove(ids) {
+    const { data } = await branchesAPI.bulkRemove(ids);
+    return unwrapData(data);
   },
 };
