@@ -23,6 +23,7 @@ import { Modal } from "@/components/dialogs/Modal.jsx";
 import { ConfirmDialog } from "@/components/dialogs/ConfirmDialog.jsx";
 import { ErrorState } from "@/components/ui/ErrorState.jsx";
 import { Badge } from "@/components/ui/Badge.jsx";
+import { appConfig } from "@/config/app.config.js";
 import { useVerifications } from "@/features/verification/verificationHooks.js";
 import { useProducts } from "@/features/products/productsHooks.js";
 import { verificationFormSchema } from "@/features/verification/verificationValidation.js";
@@ -123,9 +124,10 @@ function DetailRow({ label, children }) {
 
 function VerificationDetailsModal({ isOpen, onClose, verification }) {
   const [copied, setCopied] = useState(false);
+  const appOrigin = appConfig.publicAppUrl || window.location.origin;
 
   const verifyUrl = verification
-    ? `${window.location.origin}/verify/${verification.qrId}`
+    ? `${appOrigin}/verify/${verification.qrId}`
     : "";
 
   useEffect(() => {
