@@ -180,15 +180,15 @@ export async function downloadSelectedVerificationQrsPdf(entries) {
 
   const pageW = pdf.internal.pageSize.getWidth();
   const pageH = pdf.internal.pageSize.getHeight();
-  const marginX = 40;
-  const marginY = 48;
-  const cols = 2;
+  const marginX = 28;
+  const marginY = 36;
+  const cols = 3;
   const rows = 3;
-  const gapX = 24;
-  const gapY = 28;
+  const gapX = 16;
+  const gapY = 18;
   const cellW = (pageW - marginX * 2 - gapX * (cols - 1)) / cols;
   const cellH = (pageH - marginY * 2 - gapY * (rows - 1)) / rows;
-  const qrSize = Math.min(cellW - 16, cellH - 52);
+  const qrSize = Math.min(cellW - 12, cellH - 44);
   const perPage = cols * rows;
 
   for (let index = 0; index < list.length; index += 1) {
