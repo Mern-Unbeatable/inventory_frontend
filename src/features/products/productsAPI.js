@@ -47,4 +47,16 @@ export const productsAPI = {
     return apiClient.patch(HTTP_ENDPOINTS.PRODUCTS.BY_ID(id), payload);
   },
   remove: (id) => apiClient.delete(HTTP_ENDPOINTS.PRODUCTS.BY_ID(id)),
+  exportFile: (params) =>
+    apiClient.get(HTTP_ENDPOINTS.PRODUCTS.EXPORT, {
+      params,
+      responseType: 'blob',
+    }),
+  importFile: (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiClient.post(HTTP_ENDPOINTS.PRODUCTS.IMPORT, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
 };

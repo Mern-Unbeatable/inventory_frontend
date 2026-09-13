@@ -27,6 +27,8 @@ export const HTTP_ENDPOINTS = {
   PRODUCTS: {
     BASE: "/products",
     BY_ID: (id) => `/products/${id}`,
+    EXPORT: "/products/export",
+    IMPORT: "/products/import",
   },
   INVENTORY: {
     BASE: "/inventory",

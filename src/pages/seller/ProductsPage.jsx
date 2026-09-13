@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   AlertCircle,
+  Download,
   DollarSign,
   Eye,
   FileText,
@@ -13,6 +14,7 @@ import {
   ShoppingCart,
   Tag,
   Trash2,
+  Upload,
   Weight,
   ZoomIn,
 } from 'lucide-react';
@@ -54,9 +56,248 @@ const PRODUCTS_PAGE_SIZE_OPTIONS = [10, 20, 30, 50, 100].map((value) => ({
   label: String(value),
 }));
 
+const EXPORT_FORMATS = [
+  { format: 'csv', label: 'CSV (.csv)' },
+  { format: 'xlsx', label: 'Excel (.xlsx)' },
+  { format: 'json', label: 'JSON (.json)' },
+];
+
 function isOwnedByUser(product, userId) {
   if (!product || !userId) return false;
   return product.ownerId === userId;
+}
+
+function ProductDownloadModal({
+  isOpen,
+  onClose,
+  onDownload,
+  isLoading,
+  activeFormat,
+}) {
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title='Download products'
+      description='Export products you are allowed to access as CSV, Excel, or JSON.'
+      size='sm'
+      footer={
+        <Button variant='outline' onClick={onClose} disabled={isLoading}>
+          Close
+        </Button>
+      }
+    >
+      <div className='space-y-3'>
+        <p className='text-sm text-slate-600'>
+          Columns: title, sku, description, price, quantity, assignUserId
+          (optional for admins), plus owner and created date for reference.
+        </p>
+        <div className='flex flex-col gap-2'>
+          {EXPORT_FORMATS.map(({ format, label }) => (
+            <Button
+              key={format}
+              variant='outline'
+              icon={Download}
+              isLoading={isLoading && activeFormat === format}
+              disabled={isLoading}
+              onClick={() => onDownload(format)}
+            >
+              Download {label}
+            </Button>
+          ))}
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+function ProductUploadModal({
+  isOpen,
+  onClose,
+  onImport,
+  isLoading,
+  result,
+  errorMessage,
+}) {
+  const [file, setFile] = useState(null);
+  const [localError, setLocalError] = useState(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setFile(null);
+      setLocalError(null);
+    }
+  }, [isOpen]);
+
+  const handleFileChange = (event) => {
+    const next = event.target.files?.[0] || null;
+    setLocalError(null);
+    if (!next) {
+      setFile(null);
+      return;
+    }
+    const name = next.name.toLowerCase();
+    if (
+      !name.endsWith('.csv') &&
+      !name.endsWith('.xlsx') &&
+      !name.endsWith('.json')
+    ) {
+      setFile(null);
+      setLocalError('Please choose a .csv, .xlsx, or .json file');
+      return;
+    }
+    setFile(next);
+  };
+
+  const handleImport = async () => {
+    if (!file) {
+      setLocalError('Select a file to import');
+      return;
+    }
+    await onImport(file);
+  };
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title='Upload products'
+      description='Import products in bulk from CSV, Excel, or JSON. Duplicate SKUs and invalid rows are skipped with errors listed below.'
+      size='lg'
+      footer={
+        <>
+          <Button variant='outline' onClick={onClose} disabled={isLoading}>
+            {result ? 'Close' : 'Cancel'}
+          </Button>
+          {!result ? (
+            <Button
+              icon={Upload}
+              isLoading={isLoading}
+              disabled={isLoading || !file}
+              onClick={handleImport}
+            >
+              Import
+            </Button>
+          ) : null}
+        </>
+      }
+    >
+      <div className='space-y-4'>
+        {!result ? (
+          <>
+            <div className='rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600'>
+              <p className='font-medium text-slate-800'>Required columns</p>
+              <p className='mt-1'>
+                <code className='text-xs'>title</code>,{' '}
+                <code className='text-xs'>sku</code>. Optional:{' '}
+                <code className='text-xs'>description</code>,{' '}
+                <code className='text-xs'>price</code>,{' '}
+                <code className='text-xs'>quantity</code>,{' '}
+                <code className='text-xs'>assignUserId</code> (admins only).
+              </p>
+              <p className='mt-2 text-slate-500'>
+                Sellers create products under their own ownership. Max 500 rows
+                per file. JSON must be an array of objects (or{' '}
+                <code className='text-xs'>{`{ "products": [...] }`}</code>).
+              </p>
+            </div>
+
+            <div>
+              <label
+                htmlFor='product-import-file'
+                className='mb-1.5 block text-sm font-medium text-slate-700'
+              >
+                Spreadsheet file
+              </label>
+              <input
+                id='product-import-file'
+                type='file'
+                accept='.csv,.xlsx,.json,text/csv,application/json,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                disabled={isLoading}
+                onChange={handleFileChange}
+                className='block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-800 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-slate-700'
+              />
+              {file ? (
+                <p className='mt-2 text-sm text-slate-500'>
+                  Selected: {file.name}
+                </p>
+              ) : null}
+            </div>
+
+            {(localError || errorMessage) && (
+              <div className='flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800'>
+                <AlertCircle className='mt-0.5 size-4 shrink-0' />
+                <span>{localError || errorMessage}</span>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className='space-y-4'>
+            <div className='grid grid-cols-1 gap-3 sm:grid-cols-3'>
+              <div className='rounded-lg border border-slate-200 bg-slate-50 p-3'>
+                <p className='text-xs font-medium uppercase tracking-wide text-slate-500'>
+                  Total rows
+                </p>
+                <p className='mt-1 text-xl font-semibold text-slate-900'>
+                  {result.totalRows}
+                </p>
+              </div>
+              <div className='rounded-lg border border-emerald-200 bg-emerald-50 p-3'>
+                <p className='text-xs font-medium uppercase tracking-wide text-emerald-700'>
+                  Imported
+                </p>
+                <p className='mt-1 text-xl font-semibold text-emerald-800'>
+                  {result.successCount}
+                </p>
+              </div>
+              <div className='rounded-lg border border-red-200 bg-red-50 p-3'>
+                <p className='text-xs font-medium uppercase tracking-wide text-red-700'>
+                  Failed
+                </p>
+                <p className='mt-1 text-xl font-semibold text-red-800'>
+                  {result.failureCount}
+                </p>
+              </div>
+            </div>
+
+            {result.failed?.length ? (
+              <div>
+                <p className='mb-2 text-sm font-medium text-slate-800'>
+                  Row errors
+                </p>
+                <div className='max-h-56 overflow-auto rounded-lg border border-slate-200'>
+                  <table className='min-w-full text-left text-sm'>
+                    <thead className='bg-slate-50 text-xs uppercase text-slate-500'>
+                      <tr>
+                        <th className='px-3 py-2'>Row</th>
+                        <th className='px-3 py-2'>SKU</th>
+                        <th className='px-3 py-2'>Error</th>
+                      </tr>
+                    </thead>
+                    <tbody className='divide-y divide-slate-100'>
+                      {result.failed.map((row) => (
+                        <tr key={`${row.row}-${row.sku || row.message}`}>
+                          <td className='px-3 py-2 text-slate-700'>{row.row}</td>
+                          <td className='px-3 py-2 text-slate-500'>
+                            {row.sku || '—'}
+                          </td>
+                          <td className='px-3 py-2 text-red-700'>{row.message}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (
+              <p className='text-sm text-emerald-700'>
+                All rows imported successfully.
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+    </Modal>
+  );
 }
 
 function ProductFormModal({
@@ -312,6 +553,8 @@ export default function ProductsPage() {
     createProduct,
     updateProduct,
     deleteProduct,
+    exportProducts,
+    importProducts,
   } = useProducts();
   const { recordSale, isMutating: isStockMutating } = useInventory();
   const {
@@ -329,6 +572,13 @@ export default function ProductsPage() {
   const [viewing, setViewing] = useState(null);
   const [deleting, setDeleting] = useState(null);
   const [sellTarget, setSellTarget] = useState(null);
+  const [downloadOpen, setDownloadOpen] = useState(false);
+  const [uploadOpen, setUploadOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportFormat, setExportFormat] = useState(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importResult, setImportResult] = useState(null);
+  const [importError, setImportError] = useState(null);
 
   useEffect(() => {
     loadProducts();
@@ -533,6 +783,36 @@ export default function ProductsPage() {
     }
   };
 
+  const handleExport = async (format) => {
+    setIsExporting(true);
+    setExportFormat(format);
+    const result = await exportProducts({
+      format,
+      search: filters.search || undefined,
+    });
+    setIsExporting(false);
+    setExportFormat(null);
+    if (result.success) setDownloadOpen(false);
+  };
+
+  const handleImport = async (file) => {
+    setIsImporting(true);
+    setImportError(null);
+    const result = await importProducts(file);
+    setIsImporting(false);
+    if (result.success) {
+      setImportResult(result.data);
+    } else {
+      setImportError(result.error?.message || 'Import failed');
+    }
+  };
+
+  const openUploadModal = () => {
+    setImportResult(null);
+    setImportError(null);
+    setUploadOpen(true);
+  };
+
   const viewingAvailableQuantity = viewing?.availableQuantity ?? 0;
   const viewingIsInCart = viewing
     ? cartItems.some((item) => item.productId === viewing.id)
@@ -566,15 +846,31 @@ export default function ProductsPage() {
         }
         actions={
           isAdmin || isSeller ? (
-            <Button
-              icon={Plus}
-              onClick={() => {
-                setEditing(null);
-                setFormOpen(true);
-              }}
-            >
-              Add product
-            </Button>
+            <>
+              <Button
+                variant='outline'
+                icon={Download}
+                onClick={() => setDownloadOpen(true)}
+              >
+                Download
+              </Button>
+              <Button
+                variant='outline'
+                icon={Upload}
+                onClick={openUploadModal}
+              >
+                Upload
+              </Button>
+              <Button
+                icon={Plus}
+                onClick={() => {
+                  setEditing(null);
+                  setFormOpen(true);
+                }}
+              >
+                Add product
+              </Button>
+            </>
           ) : null
         }
       />
@@ -989,6 +1285,28 @@ export default function ProductsPage() {
           const result = await deleteProduct(deleting.id);
           if (result.success) setDeleting(null);
         }}
+      />
+
+      <ProductDownloadModal
+        isOpen={downloadOpen}
+        onClose={() => !isExporting && setDownloadOpen(false)}
+        onDownload={handleExport}
+        isLoading={isExporting}
+        activeFormat={exportFormat}
+      />
+
+      <ProductUploadModal
+        isOpen={uploadOpen}
+        onClose={() => {
+          if (isImporting) return;
+          setUploadOpen(false);
+          setImportResult(null);
+          setImportError(null);
+        }}
+        onImport={handleImport}
+        isLoading={isImporting}
+        result={importResult}
+        errorMessage={importError}
       />
     </div>
   );

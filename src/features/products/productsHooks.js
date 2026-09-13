@@ -9,6 +9,7 @@ import {
   setSelectedProduct,
   updateProductThunk,
 } from './productsSlice.js';
+import { productsService } from './productsService.js';
 import {
   selectProductFilters,
   selectProductItems,
@@ -85,6 +86,64 @@ export const useProducts = () => {
     [dispatch]
   );
 
+  const exportProducts = useCallback(
+    async ({ format = 'csv', ...params } = {}) => {
+      try {
+        const fallbackByFormat = {
+          xlsx: 'products-export.xlsx',
+          json: 'products-export.json',
+          csv: 'products-export.csv',
+        };
+        const fallbackName = fallbackByFormat[format] || fallbackByFormat.csv;
+        await productsService.exportProducts(
+          { format, ...params },
+          fallbackName
+        );
+        const labelByFormat = {
+          xlsx: 'Excel export downloaded',
+          json: 'JSON export downloaded',
+          csv: 'CSV export downloaded',
+        };
+        toast.success(labelByFormat[format] || labelByFormat.csv);
+        return { success: true };
+      } catch (err) {
+        toast.error(err?.message || 'Failed to export products');
+        return { success: false, error: err };
+      }
+    },
+    []
+  );
+
+  const importProducts = useCallback(
+    async (file) => {
+      try {
+        const result = await productsService.importProducts(file);
+        dispatch(fetchProductsThunk());
+        const successCount = result?.successCount ?? 0;
+        const failureCount = result?.failureCount ?? 0;
+        if (failureCount === 0) {
+          toast.success(
+            `Imported ${successCount} product${successCount === 1 ? '' : 's'}`
+          );
+        } else if (successCount === 0) {
+          toast.error(
+            `Import finished with ${failureCount} failed row${failureCount === 1 ? '' : 's'}`
+          );
+        } else {
+          toast.success(
+            `Imported ${successCount}, ${failureCount} failed`
+          );
+        }
+        return { success: true, data: result };
+      } catch (err) {
+        const message = err?.message || 'Failed to import products';
+        toast.error(message);
+        return { success: false, error: { message } };
+      }
+    },
+    [dispatch]
+  );
+
   return {
     items,
     meta,
@@ -101,5 +160,7 @@ export const useProducts = () => {
     createProduct,
     updateProduct,
     deleteProduct,
+    exportProducts,
+    importProducts,
   };
 };
