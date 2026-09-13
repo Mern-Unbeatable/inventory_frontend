@@ -8,7 +8,8 @@ import { Table } from "@/components/tables/Table.jsx";
 import { Pagination } from "@/components/tables/Pagination.jsx";
 import { Button } from "@/components/ui/Button.jsx";
 import { Input } from "@/components/forms/Input.jsx";
-import { Select } from "@/components/forms/Select.jsx";
+import { CountrySelect } from "@/components/forms/CountrySelect.jsx";
+import { CountryFlag } from "@/components/ui/CountryFlag.jsx";
 import { Modal } from "@/components/dialogs/Modal.jsx";
 import { ConfirmDialog } from "@/components/dialogs/ConfirmDialog.jsx";
 import { ErrorState } from "@/components/ui/ErrorState.jsx";
@@ -30,11 +31,15 @@ function BranchFormModal({
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(branchFormSchema),
     defaultValues: { name: "", code: "", countryId: "" },
   });
+
+  const countryId = watch("countryId") || "";
 
   useEffect(() => {
     if (!isOpen) return;
@@ -66,14 +71,21 @@ function BranchFormModal({
       }
     >
       <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-        <Select
+        <CountrySelect
           id="countryId"
           label="Country"
           placeholder="Select country"
           options={countries}
+          value={countryId}
+          onChange={(event) =>
+            setValue("countryId", event.target.value, {
+              shouldValidate: true,
+              shouldDirty: true,
+            })
+          }
           error={errors.countryId?.message}
-          {...register("countryId")}
         />
+        <input type="hidden" {...register("countryId")} />
         <Input
           id="name"
           label="Branch name"
@@ -127,8 +139,21 @@ export default function BranchesPage() {
   }, [loadBranches, filters.page, filters.search, filters.countryId]);
 
   const countryOptions = useMemo(
-    () => countries.map((c) => ({ value: c.id, label: c.name })),
+    () =>
+      countries.map((country) => ({
+        value: country.id,
+        code: country.code || "",
+        name: country.name,
+        label: country.code
+          ? `${country.name} (${country.code})`
+          : country.name,
+      })),
     [countries],
+  );
+
+  const filterCountryOptions = useMemo(
+    () => [{ value: "", name: "All countries", code: "" }, ...countryOptions],
+    [countryOptions],
   );
 
   const visibleIds = useMemo(() => items.map((row) => row.id), [items]);
@@ -205,7 +230,17 @@ export default function BranchesPage() {
     {
       key: "country",
       header: "Country",
-      render: (row) => row.country?.name || "—",
+      render: (row) =>
+        row.country?.name ? (
+          <span className="inline-flex items-center gap-2 text-slate-900">
+            {row.country.code ? (
+              <CountryFlag code={row.country.code} />
+            ) : null}
+            {row.country.name}
+          </span>
+        ) : (
+          "—"
+        ),
     },
     {
       key: "users",
@@ -274,18 +309,17 @@ export default function BranchesPage() {
         {/* Left Side: Filters */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="w-full sm:w-[240px]">
-            <Select
-              value={filters.countryId}
+            <CountrySelect
+              id="branchCountryFilter"
+              placeholder="All countries"
+              options={filterCountryOptions}
+              value={filters.countryId || ""}
               onChange={(event) =>
                 updateFilters({
                   countryId: event.target.value,
                   page: 1,
                 })
               }
-              options={[
-                { value: "", label: "All countries" },
-                ...countryOptions,
-              ]}
             />
           </div>
 

@@ -79,12 +79,17 @@ export function CountrySelect({
         >
           {selected ? (
             <>
-              <CountryFlag code={selected.code || selected.value} className="shrink-0" />
+              {selected.code ? (
+                <CountryFlag code={selected.code} className="shrink-0" />
+              ) : null}
               <span className="min-w-0 flex-1 truncate">
-                {selected.name || selected.label}{" "}
-                <span className="font-mono text-slate-500">
-                  ({selected.code || selected.value})
-                </span>
+                {selected.name || selected.label}
+                {selected.code ? (
+                  <span className="font-mono text-slate-500">
+                    {" "}
+                    ({selected.code})
+                  </span>
+                ) : null}
               </span>
             </>
           ) : (
@@ -116,16 +121,19 @@ export function CountrySelect({
                       }`}
                       onClick={() => selectOption(option.value)}
                     >
-                      <CountryFlag
-                        code={option.code || option.value}
-                        className="shrink-0"
-                      />
+                      {option.code ? (
+                        <CountryFlag code={option.code} className="shrink-0" />
+                      ) : (
+                        <span className="inline-block h-3.5 w-5 shrink-0" />
+                      )}
                       <span className="min-w-0 flex-1 truncate">
                         {option.name || option.label}
                       </span>
-                      <span className="font-mono text-xs text-slate-500">
-                        {option.code || option.value}
-                      </span>
+                      {option.code ? (
+                        <span className="font-mono text-xs text-slate-500">
+                          {option.code}
+                        </span>
+                      ) : null}
                     </button>
                   </li>
                 );
