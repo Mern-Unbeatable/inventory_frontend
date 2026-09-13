@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Ethiopia",
+    "code": "ET",
+    "flagCode": "et",
+    "dialCode": "+251"
+  },
+  {
+    "name": "Bangladesh",
+    "code": "BD",
+    "flagCode": "bd",
+    "dialCode": "+880"
+  },
+  {
+    "name": "South Korea",
+    "code": "KR",
+    "flagCode": "kr",
+    "dialCode": "+82"
+  },
+  {
+    "name": "United States",
+    "code": "US",
+    "flagCode": "us",
+    "dialCode": "+1"
+  },
+  {
+    "name": "United Arab Emirates",
+    "code": "AE",
+    "flagCode": "ae",
+    "dialCode": "+971"
+  }
+]

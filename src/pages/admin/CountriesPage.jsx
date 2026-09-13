@@ -5,25 +5,73 @@ import { Pencil, Plus, Trash2, TrashIcon } from "lucide-react";
 import { PageHeader } from "@/components/common/PageHeader.jsx";
 import { Table } from "@/components/tables/Table.jsx";
 import { Button } from "@/components/ui/Button.jsx";
-import { Input } from "@/components/forms/Input.jsx";
+import { CountrySelect } from "@/components/forms/CountrySelect.jsx";
+import { CountryFlag } from "@/components/ui/CountryFlag.jsx";
 import { Modal } from "@/components/dialogs/Modal.jsx";
 import { ConfirmDialog } from "@/components/dialogs/ConfirmDialog.jsx";
 import { ErrorState } from "@/components/ui/ErrorState.jsx";
 import { Badge } from "@/components/ui/Badge.jsx";
 import { useCountries } from "@/features/countries/countriesHooks.js";
 import { countryFormSchema } from "@/features/countries/countriesValidation.js";
+import {
+  getCountryByCode,
+  getCountrySelectOptions,
+} from "@/data/countryCodes.js";
 import { formatDate } from "@/utils/format/date.js";
 
-function CountryFormModal({ isOpen, onClose, country, onSubmit, isLoading }) {
+function CountryFormModal({
+  isOpen,
+  onClose,
+  country,
+  onSubmit,
+  isLoading,
+  existingCodes = [],
+}) {
+  const isEditing = Boolean(country);
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(countryFormSchema),
     defaultValues: { name: "", code: "" },
   });
+
+  const selectedCode = watch("code") || "";
+
+  const countryOptions = useMemo(() => {
+    const options = getCountrySelectOptions({
+      excludeCodes: isEditing
+        ? existingCodes.filter(
+            (code) =>
+              code &&
+              code.toUpperCase() !== String(country?.code || "").toUpperCase(),
+          )
+        : existingCodes,
+    });
+
+    // Keep edit working for countries not yet in countries.json.
+    if (
+      isEditing &&
+      country?.code &&
+      !options.some(
+        (option) =>
+          option.value.toUpperCase() === String(country.code).toUpperCase(),
+      )
+    ) {
+      options.unshift({
+        value: country.code,
+        label: `${country.name || "Country"} (${country.code})`,
+        name: country.name,
+        code: country.code,
+      });
+    }
+
+    return options;
+  }, [existingCodes, isEditing, country]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -34,36 +82,69 @@ function CountryFormModal({ isOpen, onClose, country, onSubmit, isLoading }) {
     );
   }, [isOpen, country, reset]);
 
+  const handleCountrySelect = (event) => {
+    const code = event.target.value;
+    const selected = getCountryByCode(code);
+    if (!selected) {
+      setValue("code", "", { shouldValidate: true });
+      setValue("name", "", { shouldValidate: true });
+      return;
+    }
+    setValue("code", selected.code, { shouldValidate: true });
+    setValue("name", selected.name, { shouldValidate: true });
+  };
+
+  const selectedCountry = getCountryByCode(selectedCode);
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={country ? "Edit country" : "Create country"}
+      title={isEditing ? "Edit country" : "Create country"}
       footer={
         <>
           <Button variant="outline" onClick={onClose} disabled={isLoading}>
             Cancel
           </Button>
           <Button onClick={handleSubmit(onSubmit)} isLoading={isLoading}>
-            {country ? "Save changes" : "Create country"}
+            {isEditing ? "Save changes" : "Create country"}
           </Button>
         </>
       }
     >
       <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-        <Input
-          id="name"
-          label="Country name"
-          error={errors.name?.message}
-          {...register("name")}
+        <CountrySelect
+          id="countrySelect"
+          label="Country"
+          placeholder="Select a country"
+          options={countryOptions}
+          value={selectedCode}
+          onChange={handleCountrySelect}
+          error={errors.name?.message || errors.code?.message}
+          hint="Select a country to set name and code"
         />
-        <Input
-          id="code"
-          label="Code"
-          hint="Optional ISO-style code, e.g. ET"
-          error={errors.code?.message}
-          {...register("code")}
-        />
+
+        {selectedCountry && (
+          <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700">
+            <div className="flex items-center justify-between gap-3">
+              <span className="inline-flex items-center gap-2 font-medium">
+                <CountryFlag code={selectedCountry.code} />
+                {selectedCountry.name}
+              </span>
+              <span className="font-mono text-slate-500">
+                {selectedCountry.code}
+              </span>
+            </div>
+            {selectedCountry.dialCode && (
+              <p className="mt-1 text-xs text-slate-500">
+                Dial code: {selectedCountry.dialCode}
+              </p>
+            )}
+          </div>
+        )}
+
+        <input type="hidden" {...register("name")} />
+        <input type="hidden" {...register("code")} />
       </form>
     </Modal>
   );
@@ -93,6 +174,11 @@ export default function CountriesPage() {
   useEffect(() => {
     loadCountries();
   }, [loadCountries]);
+
+  const existingCodes = useMemo(
+    () => items.map((row) => row.code).filter(Boolean),
+    [items],
+  );
 
   const visibleIds = useMemo(() => items.map((row) => row.id), [items]);
   const selectedVisibleIds = visibleIds.filter((id) =>
@@ -156,7 +242,10 @@ export default function CountriesPage() {
       key: "name",
       header: "Name",
       render: (row) => (
-        <span className="font-medium text-slate-900">{row.name}</span>
+        <span className="inline-flex items-center gap-2 font-medium text-slate-900">
+          {row.code ? <CountryFlag code={row.code} /> : null}
+          {row.name}
+        </span>
       ),
     },
     {
@@ -271,6 +360,7 @@ export default function CountriesPage() {
           setEditing(null);
         }}
         country={editing}
+        existingCodes={existingCodes}
         isLoading={isMutating}
         onSubmit={async (values) => {
           const result = editing
