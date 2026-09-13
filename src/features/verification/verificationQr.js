@@ -10,11 +10,16 @@ const LIGHT = "#FFFFFF";
 
 /**
  * Build the public verification URL encoded into the QR.
- * Uses VITE_PUBLIC_APP_URL when set, otherwise the current origin.
+ * Example: http://localhost:5173/verify/ABC12346
  */
 export function buildVerificationUrl(qrId, publicAppUrl = "") {
-  const origin = (publicAppUrl || window.location.origin).replace(/\/$/, "");
-  return `${origin}/verify/${qrId}`;
+  if (!qrId) return "";
+  const origin = (
+    publicAppUrl ||
+    (typeof window !== "undefined" ? window.location.origin : "") ||
+    "http://localhost:5173"
+  ).replace(/\/$/, "");
+  return `${origin}/verify/${String(qrId).trim()}`;
 }
 
 function qrOptions(width) {

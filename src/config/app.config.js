@@ -1,6 +1,8 @@
 export const appConfig = {
   apiBaseUrl: import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api",
-  publicAppUrl: import.meta.env.VITE_PUBLIC_APP_URL || "",
+  /** Public frontend origin used inside QR codes (`{url}/verify/{qrId}`). */
+  publicAppUrl:
+    import.meta.env.VITE_PUBLIC_APP_URL || "http://localhost:5173",
   appName: import.meta.env.VITE_APP_NAME || "Inventory M",
   paginationDefaultLimit: 10,
   lowStockThreshold: 5,
