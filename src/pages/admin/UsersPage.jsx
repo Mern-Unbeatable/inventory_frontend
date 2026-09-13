@@ -14,6 +14,7 @@ import { Modal } from "@/components/dialogs/Modal.jsx";
 import { ConfirmDialog } from "@/components/dialogs/ConfirmDialog.jsx";
 import { ErrorState } from "@/components/ui/ErrorState.jsx";
 import { RoleChip } from "@/components/ui/StatusChip.jsx";
+import { CountryFlag } from "@/components/ui/CountryFlag.jsx";
 import { useUsers } from "@/features/users/usersHooks.js";
 import { useBranches } from "@/features/branches/branchesHooks.js";
 import {
@@ -253,6 +254,20 @@ export default function UsersPage() {
       key: "role",
       header: "Role",
       render: (row) => <RoleChip role={row.role} />,
+    },
+    {
+      key: "country",
+      header: "Country",
+      render: (row) => {
+        const country = row.branch?.country;
+        if (!country?.name) return "—";
+        return (
+          <span className="inline-flex items-center gap-2 text-slate-900">
+            {country.code ? <CountryFlag code={country.code} /> : null}
+            {country.name}
+          </span>
+        );
+      },
     },
     {
       key: "branch",

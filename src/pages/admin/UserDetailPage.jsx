@@ -22,6 +22,7 @@ import { Modal } from '@/components/dialogs/Modal.jsx';
 import { Input } from '@/components/forms/Input.jsx';
 import { Select } from '@/components/forms/Select.jsx';
 import { RoleChip, StockStatusChip } from '@/components/ui/StatusChip.jsx';
+import { CountryFlag } from '@/components/ui/CountryFlag.jsx';
 import { useUsers } from '@/features/users/usersHooks.js';
 import { useInventory } from '@/features/inventory/inventoryHooks.js';
 import { useBranches } from '@/features/branches/branchesHooks.js';
@@ -270,7 +271,15 @@ export default function UserDetailPage() {
 
   if (!user) return null;
 
-  const countryLabel = user.branch?.country?.name || '—';
+  const country = user.branch?.country;
+  const countryLabel = country?.name ? (
+    <span className='inline-flex items-center gap-2'>
+      {country.code ? <CountryFlag code={country.code} /> : null}
+      {country.name}
+    </span>
+  ) : (
+    '—'
+  );
   const branchLabel =
     user.branch?.name ||
     (user.role === ROLES.ADMIN ? 'All branches' : 'Not assigned');
