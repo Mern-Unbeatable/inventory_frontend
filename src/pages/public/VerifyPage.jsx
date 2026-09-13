@@ -1,14 +1,21 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { BadgeCheck, Loader2, ShieldAlert, ShieldCheck } from "lucide-react";
+import {
+  BadgeCheck,
+  Check,
+  Loader2,
+  Package,
+  ShieldAlert,
+  ShieldCheck,
+} from "lucide-react";
 import { verificationService } from "@/features/verification/verificationService.js";
 import { appConfig } from "@/config/app.config.js";
 import { formatDateTime } from "@/utils/format/date.js";
+import { resolveMediaUrl } from "@/utils/media/url.js";
 
 /**
  * Public product verification page (no authentication required).
  * Reachable via the printed QR code URL: /verify/:qrId
- * Displays only safe, customer-facing information.
  */
 export default function VerifyPage() {
   const { qrId } = useParams();
@@ -36,124 +43,179 @@ export default function VerifyPage() {
     runVerify();
   }, [runVerify]);
 
+  const productImageSrc =
+    state.status === "success"
+      ? resolveMediaUrl(state.data?.productImageUrl)
+      : null;
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
-      <div className="w-full max-w-xl">
-        <div className="mb-6 flex items-center justify-center gap-2 text-slate-500">
-          <ShieldCheck className="size-5 text-primary-600" />
-          <span className="text-sm font-semibold tracking-tight">
-            {appConfig.appName} · Product Verification
+    <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-10">
+      <div className="w-full max-w-md">
+        <div className="mb-5 flex items-center justify-center gap-2 text-slate-500">
+          <ShieldCheck className="size-4 text-emerald-600" />
+          <span className="text-sm font-medium tracking-tight">
+             Product Verification
           </span>
         </div>
 
         {state.status === "loading" && (
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-            <Loader2 className="mx-auto size-8 animate-spin text-primary-600" />
+          <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm">
+            <Loader2 className="mx-auto size-8 animate-spin text-emerald-600" />
             <p className="mt-4 text-sm text-slate-500">Verifying this code…</p>
           </div>
         )}
 
         {state.status === "error" && (
-          <div className="rounded-2xl border border-red-200 bg-white p-8 text-center shadow-sm">
-            <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-red-100">
-              <ShieldAlert className="size-7 text-red-600" />
+          <div className="overflow-hidden rounded-2xl border border-red-200 bg-white shadow-sm">
+            <div className="bg-slate-900 px-6 py-8 text-center text-white">
+              <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-red-500/20 ring-4 ring-red-500/30">
+                <ShieldAlert className="size-8 text-red-400" />
+              </div>
+              <h1 className="mt-4 text-xl font-bold tracking-tight">
+                Not verified
+              </h1>
+              <p className="mt-1.5 text-sm text-slate-300">
+                This code could not be confirmed.
+              </p>
             </div>
-            <h1 className="mt-4 text-lg font-semibold text-slate-900">
-              Not verified
-            </h1>
-            <p className="mt-2 text-sm text-slate-500">{state.error}</p>
-            <p className="mt-4 font-mono text-xs text-slate-400">
-              Code: {qrId}
-            </p>
-            <button
-              type="button"
-              onClick={runVerify}
-              className="mt-6 inline-flex items-center justify-center rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
-            >
-              Try again
-            </button>
+            <div className="space-y-4 px-6 py-6 text-center">
+              <p className="text-sm text-slate-600">{state.error}</p>
+              <p className="font-mono text-sm text-slate-400">Code: {qrId}</p>
+              <button
+                type="button"
+                onClick={runVerify}
+                className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+              >
+                Try again
+              </button>
+            </div>
           </div>
         )}
 
         {state.status === "success" && state.data && (
-          <div className="overflow-hidden rounded-2xl border border-green-200 bg-white shadow-sm">
-            <div className="bg-gray-900 px-6 py-6 text-center text-white">
-              <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-green-500/50">
-                <BadgeCheck className="size-8" />
+          <div className="overflow-hidden rounded-2xl border border-emerald-200 bg-white shadow-sm">
+            {/* Header */}
+            <div className="bg-slate-900 px-6 py-8 text-center text-white">
+              <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-emerald-500 ring-4 ring-emerald-500/35">
+                <BadgeCheck className="size-8 text-white" strokeWidth={2.25} />
               </div>
-              <h1 className="mt-3 text-xl font-bold tracking-tight">
-                Verified Product
+              <h1 className="mt-4 text-xl font-bold tracking-tight">
+                Verified
               </h1>
+              <p className="mt-1.5 text-sm text-slate-300">
+                This product is authentic and registered.
+              </p>
             </div>
 
-            <div className="space-y-4 px-6 py-6">
-              <Field label="Product name" value={state.data.productName} />
-              {state.data.brand && (
-                <Field label="Brand" value={state.data.brand} />
+            {/* Body */}
+            <div className="space-y-5 px-6 py-6">
+              {/* Product image */}
+              {productImageSrc ? (
+                <div className="flex justify-center">
+                  <img
+                    src={productImageSrc}
+                    alt={state.data.productName || "Product"}
+                    className="size-28 rounded-2xl object-cover ring-1 ring-slate-200"
+                  />
+                </div>
+              ) : (
+                <div className="mx-auto flex size-28 items-center justify-center rounded-2xl bg-slate-100 ring-1 ring-slate-200">
+                  <Package className="size-10 text-slate-400" strokeWidth={1.5} />
+                </div>
               )}
-              <Field label="Product code" value={state.data.qrId} mono />
-              <Field
-                label="Status"
-                value={
-                  state.data.status === "ACTIVE" ? "Active" : state.data.status
-                }
-              />
 
+              {/* Detail rows */}
+              <div className="space-y-3.5">
+                <DetailRow
+                  label="Name:"
+                  value={state.data.productName || "—"}
+                />
+                {state.data.brand ? (
+                  <DetailRow label="Brand" value={state.data.brand} />
+                ) : null}
+                <DetailRow label="QR ID:">
+                  <span className="inline-flex rounded-md bg-slate-100 px-2.5 py-1 font-mono text-sm font-semibold text-slate-800">
+                    {state.data.qrId}
+                  </span>
+                </DetailRow>
+                <DetailRow label="Status:">
+                  <span
+                    className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-sm font-medium ${
+                      state.data.status === "ACTIVE"
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                        : "border-slate-200 bg-slate-50 text-slate-600"
+                    }`}
+                  >
+                    <span
+                      className={`size-1.5 rounded-full ${
+                        state.data.status === "ACTIVE"
+                          ? "bg-emerald-500"
+                          : "bg-slate-400"
+                      }`}
+                    />
+                    {state.data.status === "ACTIVE"
+                      ? "Active"
+                      : state.data.status}
+                  </span>
+                </DetailRow>
+              </div>
+
+              {/* Scan message */}
               <div
-                className={`rounded-lg border px-4 py-3 text-sm ${
+                className={`flex items-start gap-2.5 rounded-xl border px-4 py-3 text-sm ${
                   state.data.isFirstScan
-                    ? "border-green-200 bg-green-50 text-green-800"
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-800"
                     : "border-amber-200 bg-amber-50 text-amber-800"
                 }`}
               >
-                {state.data.isFirstScan
-                  ? "Verified — First scan of this code."
-                  : "Verified — This code has previously been scanned."}
+                <span
+                  className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full ${
+                    state.data.isFirstScan
+                      ? "bg-emerald-500 text-white"
+                      : "bg-amber-500 text-white"
+                  }`}
+                >
+                  <Check className="size-3" strokeWidth={3} />
+                </span>
+                <p className="text-xs">
+                  {state.data.isFirstScan
+                    ? "Verified — First scan of this code. This product is genuine."
+                    : "Verified — This code has previously been scanned. Multiple scans are normal. If you have any concerns, please contact the manufacturer."}
+                </p>
               </div>
-
-              <dl className="grid grid-cols-1 gap-3 border-t border-slate-100 pt-4 text-sm sm:grid-cols-3">
-                <Stat label="Total scans" value={state.data.totalScans ?? 0} />
-                <Stat
-                  label="First scan"
-                  value={formatDateTime(state.data.firstScannedAt)}
-                />
-                <Stat
-                  label="Last scan"
-                  value={formatDateTime(state.data.lastScannedAt)}
-                />
-              </dl>
             </div>
           </div>
         )}
 
-        <p className="mt-6 text-center text-xs text-slate-400">
-          Multiple scans are normal and do not indicate a counterfeit product.
-        </p>
+     
+
       </div>
     </div>
   );
 }
 
-function Field({ label, value, mono = false }) {
+function DetailRow({ label, value, children }) {
   return (
     <div className="flex items-center justify-between gap-4">
       <span className="text-sm text-slate-500">{label}</span>
-      <span
-        className={`text-right text-sm font-semibold text-slate-900 ${
-          mono ? "font-mono" : ""
-        }`}
-      >
-        {value}
-      </span>
+      {children ?? (
+        <span className="text-right text-sm font-semibold text-slate-900">
+          {value}
+        </span>
+      )}
     </div>
   );
 }
 
 function Stat({ label, value }) {
   return (
-    <div>
-      <dt className="text-xs text-slate-400">{label}</dt>
-      <dd className="mt-0.5 font-medium text-slate-700">{value}</dd>
+    <div className="min-w-0">
+      <dt className="text-[10px] font-medium uppercase tracking-wide text-slate-400 sm:text-xs">
+        {label}
+      </dt>
+      <dd className="mt-1 truncate text-sm font-semibold text-slate-900">
+        {value}
+      </dd>
     </div>
   );
 }
