@@ -9,7 +9,6 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { verificationService } from "@/features/verification/verificationService.js";
-import { appConfig } from "@/config/app.config.js";
 import { formatDateTime } from "@/utils/format/date.js";
 import { resolveMediaUrl } from "@/utils/media/url.js";
 
@@ -40,8 +39,32 @@ export default function VerifyPage() {
   }, [qrId]);
 
   useEffect(() => {
-    runVerify();
-  }, [runVerify]);
+    let cancelled = false;
+
+    setState({ status: "loading", data: null, error: null });
+
+    // Call verify immediately (sync start) so StrictMode remounts share one in-flight request.
+    verificationService
+      .verify(qrId)
+      .then((data) => {
+        if (!cancelled) {
+          setState({ status: "success", data, error: null });
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          setState({
+            status: "error",
+            data: null,
+            error: error?.message || "This QR code could not be verified.",
+          });
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [qrId]);
 
   const productImageSrc =
     state.status === "success"
@@ -186,9 +209,6 @@ export default function VerifyPage() {
             </div>
           </div>
         )}
-
-     
-
       </div>
     </div>
   );

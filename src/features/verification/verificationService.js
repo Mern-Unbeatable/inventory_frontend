@@ -1,6 +1,16 @@
 import { verificationAPI } from "./verificationAPI.js";
 import { unwrapData, unwrapList } from "@/config/api/config.response.js";
 
+/**
+ * In-flight public verify requests keyed by normalized qrId.
+ * React StrictMode (and rapid remounts) can invoke verify twice for the same
+ * code; sharing one promise ensures a single HTTP call → single scan record.
+ * Cleared when the request settles so refresh / "Try again" still create new scans.
+ */
+const verifyInflightByQrId = new Map();
+
+const normalizeVerifyKey = (qrId) => String(qrId ?? "").trim().toUpperCase();
+
 export const verificationService = {
   async list(params) {
     const { data } = await verificationAPI.list(params);
@@ -32,7 +42,20 @@ export const verificationService = {
   },
 
   async verify(qrId) {
-    const { data } = await verificationAPI.verify(qrId);
-    return unwrapData(data);
+    const key = normalizeVerifyKey(qrId);
+    const existing = key ? verifyInflightByQrId.get(key) : null;
+    if (existing) return existing;
+
+    const request = (async () => {
+      try {
+        const { data } = await verificationAPI.verify(qrId);
+        return unwrapData(data);
+      } finally {
+        if (key) verifyInflightByQrId.delete(key);
+      }
+    })();
+
+    if (key) verifyInflightByQrId.set(key, request);
+    return request;
   },
 };
