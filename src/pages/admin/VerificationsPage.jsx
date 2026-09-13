@@ -580,18 +580,6 @@ export default function VerificationsPage() {
       ),
     },
     {
-      key: "qrImage",
-      header: "QR",
-      render: (row) => <VerificationQrThumb qrId={row.qrId} />,
-    },
-    {
-      key: "qrId",
-      header: "QR ID",
-      render: (row) => (
-        <span className="font-mono font-medium text-slate-900">{row.qrId}</span>
-      ),
-    },
-    {
       key: "productImage",
       header: "Image",
       render: (row) => (
@@ -607,6 +595,18 @@ export default function VerificationsPage() {
         ) : (
           <Badge color="red">Missing product</Badge>
         ),
+    },
+    {
+      key: "qrImage",
+      header: "QR",
+      render: (row) => <VerificationQrThumb qrId={row.qrId} />,
+    },
+    {
+      key: "qrId",
+      header: "QR ID",
+      render: (row) => (
+        <span className="font-mono font-medium text-slate-900">{row.qrId}</span>
+      ),
     },
     {
       key: "status",
