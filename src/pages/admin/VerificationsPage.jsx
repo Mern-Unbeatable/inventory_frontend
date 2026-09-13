@@ -33,6 +33,7 @@ import { useProducts } from "@/features/products/productsHooks.js";
 import { verificationFormSchema } from "@/features/verification/verificationValidation.js";
 import {
   buildVerificationUrl,
+  downloadSelectedVerificationQrsPdf,
   downloadVerificationQr,
   generateQrPngDataUrl,
   QR_DISPLAY_SIZE,
@@ -452,7 +453,9 @@ export default function VerificationsPage() {
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [viewing, setViewing] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
+  const [selectedRowsById, setSelectedRowsById] = useState({});
   const [mappedProductIds, setMappedProductIds] = useState([]);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const selectAllCheckboxRef = useRef(null);
 
   useEffect(() => {
@@ -525,6 +528,73 @@ export default function VerificationsPage() {
   const selectedVisibleIds = visibleIds.filter((id) =>
     selectedIds.includes(id),
   );
+
+  // Keep snapshots of selected rows so PDF export works across pages.
+  useEffect(() => {
+    setSelectedRowsById((current) => {
+      const next = { ...current };
+      let changed = false;
+
+      for (const row of items) {
+        if (!selectedIds.includes(row.id)) continue;
+        if (next[row.id] !== row) {
+          next[row.id] = row;
+          changed = true;
+        }
+      }
+
+      for (const id of Object.keys(next)) {
+        if (!selectedIds.includes(id)) {
+          delete next[id];
+          changed = true;
+        }
+      }
+
+      return changed ? next : current;
+    });
+  }, [items, selectedIds]);
+
+  const selectedRows = useMemo(
+    () =>
+      selectedIds
+        .map((id) => selectedRowsById[id])
+        .filter((row) => Boolean(row?.qrId)),
+    [selectedIds, selectedRowsById],
+  );
+
+  const handleDownloadSelectedPdf = async () => {
+    if (!selectedIds.length) {
+      toast.error("Select at least one QR mapping to download");
+      return;
+    }
+
+    if (!selectedRows.length) {
+      toast.error("Selected QR data is not available to download");
+      return;
+    }
+
+    setIsDownloadingPdf(true);
+    try {
+      const entries = selectedRows.map((row) => ({
+        qrId: row.qrId,
+        productName: row.product?.title || "",
+        verifyUrl: buildVerificationUrl(row.qrId, appConfig.publicAppUrl),
+      }));
+      await downloadSelectedVerificationQrsPdf(entries);
+      toast.success(
+        `Downloaded PDF with ${entries.length} QR code${entries.length === 1 ? "" : "s"}`,
+      );
+    } catch {
+      toast.error("Failed to download selected QR PDF");
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedIds([]);
+    setSelectedRowsById({});
+  };
   const allVisibleSelected =
     visibleIds.length > 0 && selectedVisibleIds.length === visibleIds.length;
   const someVisibleSelected =
@@ -731,16 +801,27 @@ export default function VerificationsPage() {
 
             <button
               type="button"
-              onClick={() => setSelectedIds([])}
+              onClick={clearSelection}
               className="text-sm font-medium text-red-600 transition hover:underline"
             >
               Clear
             </button>
 
             <Button
+              variant="outline"
+              size="sm"
+              icon={Download}
+              disabled={isMutating || isDownloadingPdf || !selectedRows.length}
+              isLoading={isDownloadingPdf}
+              onClick={handleDownloadSelectedPdf}
+            >
+              Download PDF
+            </Button>
+
+            <Button
               variant="danger"
               size="sm"
-              disabled={isMutating}
+              disabled={isMutating || isDownloadingPdf}
               onClick={() => setBulkDeleting(true)}
             >
               <TrashIcon className="h-4 w-4" />
@@ -819,7 +900,7 @@ export default function VerificationsPage() {
           if (bulkDeleting) {
             const result = await bulkDeleteVerification(selectedIds);
             if (result.success) {
-              setSelectedIds([]);
+              clearSelection();
               setBulkDeleting(false);
             }
             return;

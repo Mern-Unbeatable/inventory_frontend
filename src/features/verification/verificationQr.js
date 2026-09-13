@@ -160,3 +160,72 @@ export async function downloadVerificationQr(verifyUrl, qrId, format) {
 
   throw new Error(`Unsupported QR download format: ${format}`);
 }
+
+/**
+ * Download a single PDF containing QR codes for the given mappings only.
+ * @param {Array<{ qrId: string, productName?: string, verifyUrl: string }>} entries
+ */
+export async function downloadSelectedVerificationQrsPdf(entries) {
+  const list = (entries || []).filter((entry) => entry?.qrId && entry?.verifyUrl);
+  if (!list.length) {
+    throw new Error("No QR mappings selected for PDF download");
+  }
+
+  const { jsPDF } = await import("jspdf");
+  const pdf = new jsPDF({
+    orientation: "portrait",
+    unit: "pt",
+    format: "a4",
+  });
+
+  const pageW = pdf.internal.pageSize.getWidth();
+  const pageH = pdf.internal.pageSize.getHeight();
+  const marginX = 40;
+  const marginY = 48;
+  const cols = 2;
+  const rows = 3;
+  const gapX = 24;
+  const gapY = 28;
+  const cellW = (pageW - marginX * 2 - gapX * (cols - 1)) / cols;
+  const cellH = (pageH - marginY * 2 - gapY * (rows - 1)) / rows;
+  const qrSize = Math.min(cellW - 16, cellH - 52);
+  const perPage = cols * rows;
+
+  for (let index = 0; index < list.length; index += 1) {
+    const entry = list[index];
+    const position = index % perPage;
+
+    if (index > 0 && position === 0) {
+      pdf.addPage();
+    }
+
+    const col = position % cols;
+    const row = Math.floor(position / cols);
+    const cellX = marginX + col * (cellW + gapX);
+    const cellY = marginY + row * (cellH + gapY);
+    const qrX = cellX + (cellW - qrSize) / 2;
+    const qrY = cellY + 8;
+
+    const dataUrl = await generateQrPngDataUrl(entry.verifyUrl, QR_DOWNLOAD_SIZE);
+    pdf.addImage(dataUrl, "PNG", qrX, qrY, qrSize, qrSize);
+
+    pdf.setFontSize(10);
+    pdf.setTextColor(30);
+    pdf.text(`QR ID: ${entry.qrId}`, cellX + cellW / 2, qrY + qrSize + 16, {
+      align: "center",
+      maxWidth: cellW - 8,
+    });
+
+    if (entry.productName) {
+      pdf.setFontSize(8);
+      pdf.setTextColor(90);
+      const nameLines = pdf.splitTextToSize(entry.productName, cellW - 8);
+      pdf.text(nameLines.slice(0, 2), cellX + cellW / 2, qrY + qrSize + 30, {
+        align: "center",
+      });
+    }
+  }
+
+  const stamp = new Date().toISOString().slice(0, 10);
+  pdf.save(`qr-codes-selected-${list.length}-${stamp}.pdf`);
+}
