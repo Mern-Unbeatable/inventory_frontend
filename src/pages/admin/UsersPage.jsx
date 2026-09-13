@@ -74,7 +74,7 @@ function UserFormModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={isEdit ? "Edit user" : "Create user"}
+      title={isEdit ? "Edit seller" : "Create seller"}
       description={
         isEdit
           ? "Leave password blank to keep the current one"
@@ -86,7 +86,7 @@ function UserFormModal({
             Cancel
           </Button>
           <Button onClick={handleSubmit(onSubmit)} isLoading={isLoading}>
-            {isEdit ? "Save changes" : "Create user"}
+            {isEdit ? "Save changes" : "Create seller"}
           </Button>
         </>
       }
@@ -274,7 +274,7 @@ export default function UsersPage() {
             size="sm"
             icon={Eye}
             title="View"
-            onClick={() => navigate(`/users/${row.id}`)}
+            onClick={() => navigate(`/seller/${row.id}`)}
           />
           <Button
             variant="ghost"
@@ -315,7 +315,7 @@ export default function UsersPage() {
   if (status === "failed" && !items.length) {
     return (
       <ErrorState
-        title="Could not load users"
+        title="Could not load sellers"
         description={error}
         onRetry={loadUsers}
       />
@@ -325,7 +325,7 @@ export default function UsersPage() {
   return (
     <div>
       <PageHeader
-        title="Users"
+        title="Seller"
         description="Admins and sellers assigned to branches"
         actions={
           <Button
@@ -335,7 +335,7 @@ export default function UsersPage() {
               setFormOpen(true);
             }}
           >
-            Add user
+            Add seller
           </Button>
         }
       />
@@ -433,10 +433,10 @@ export default function UsersPage() {
           setDeleting(null);
           setBulkDeleting(false);
         }}
-        title={bulkDeleting ? "Delete selected users?" : "Delete user?"}
+        title={bulkDeleting ? "Delete selected sellers?" : "Delete seller?"}
         description={
           bulkDeleting
-            ? `This will permanently remove ${selectedIds.length} user${selectedIds.length === 1 ? "" : "s"} and their related records.`
+            ? `This will permanently remove ${selectedIds.length} seller${selectedIds.length === 1 ? "" : "s"} and their related records.`
             : `This will permanently remove “${deleting?.name}” and their inventory assignments.`
         }
         confirmLabel={bulkDeleting ? "Delete selected" : "Delete"}

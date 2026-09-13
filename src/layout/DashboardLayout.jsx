@@ -12,7 +12,7 @@ const TITLE_MAP = {
   '/invoices': 'Invoices',
   '/branches': 'Branches',
   '/countries': 'Countries',
-  '/users': 'Users',
+  '/seller': 'Seller',
   '/profile': 'Profile',
   '/settings': 'Settings',
 };

@@ -31,12 +31,6 @@ const NAV_ITEMS = [
     icon: Warehouse,
     customerHidden: true,
   },
-  {
-    to: "/customers",
-    label: "Customers",
-    icon: UsersRound,
-    customerHidden: true,
-  },
   { to: "/invoices", label: "Invoices", icon: FileText, customerHidden: true },
   {
     to: "/countries",
@@ -53,10 +47,16 @@ const NAV_ITEMS = [
     customerHidden: true,
   },
   {
-    to: "/users",
-    label: "Users",
+    to: "/seller",
+    label: "Seller",
     icon: Users,
     adminOnly: true,
+    customerHidden: true,
+  },
+  {
+    to: "/customers",
+    label: "Customers",
+    icon: UsersRound,
     customerHidden: true,
   },
   {

@@ -31,7 +31,7 @@ export const resolvePostLoginPath = (intendedPath, user) => {
   if (isCustomer(user) && intendedPath === '/dashboard') {
     return home;
   }
-  const adminOnlyPrefixes = ['/countries', '/branches', '/users', '/settings'];
+  const adminOnlyPrefixes = ['/countries', '/branches', '/seller', '/settings'];
   const sellerPrefixes = ['/inventory', '/customers', '/invoices'];
 
   if (

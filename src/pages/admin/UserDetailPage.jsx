@@ -93,7 +93,7 @@ function EditUserModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title='Edit user'
+      title='Edit seller'
       description='Leave password blank to keep the current one'
       footer={
         <>
@@ -282,9 +282,9 @@ export default function UserDetailPage() {
           variant='ghost'
           size='sm'
           icon={ArrowLeft}
-          onClick={() => navigate('/users')}
+          onClick={() => navigate('/seller')}
         >
-          Back to users
+          Back to sellers
         </Button>
       </div>
 
@@ -410,13 +410,13 @@ export default function UserDetailPage() {
       <ConfirmDialog
         isOpen={deleting}
         onClose={() => setDeleting(false)}
-        title='Delete user?'
+        title='Delete seller?'
         description={`This will permanently remove “${user.name}” and their inventory assignments.`}
         confirmLabel='Delete'
         isLoading={isMutating}
         onConfirm={async () => {
           const result = await deleteUser(user.id);
-          if (result.success) navigate('/users', { replace: true });
+          if (result.success) navigate('/seller', { replace: true });
         }}
       />
     </div>

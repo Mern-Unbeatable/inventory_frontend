@@ -14,8 +14,8 @@ export const adminRoutes = (
   <Route element={<RoleRoute roles={["ADMIN"]} />}>
     <Route path="/countries" element={<CountriesPage />} />
     <Route path="/branches" element={<BranchesPage />} />
-    <Route path="/users" element={<UsersPage />} />
-    <Route path="/users/:id" element={<UserDetailPage />} />
+    <Route path="/seller" element={<UsersPage />} />
+    <Route path="/seller/:id" element={<UserDetailPage />} />
     <Route path="/verifications" element={<VerificationsPage />} />
     <Route path="/settings" element={<SettingsPage />} />
   </Route>
