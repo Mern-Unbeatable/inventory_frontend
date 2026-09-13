@@ -13,6 +13,7 @@ const TITLE_MAP = {
   '/branches': 'Branches',
   '/countries': 'Countries',
   '/seller': 'Seller',
+  '/verifications': 'Verification',
   '/profile': 'Profile',
   '/settings': 'Settings',
 };

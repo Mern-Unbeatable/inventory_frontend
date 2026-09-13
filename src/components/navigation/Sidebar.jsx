@@ -63,7 +63,6 @@ const NAV_ITEMS = [
     to: "/verifications",
     label: "Verification",
     icon: QrCode,
-    adminOnly: true,
     customerHidden: true,
   },
 ];
