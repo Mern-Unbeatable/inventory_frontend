@@ -89,8 +89,9 @@ function ProductDownloadModal({
     >
       <div className='space-y-3'>
         <p className='text-sm text-slate-600'>
-          Columns: title, sku, description, price, quantity, assignUserId
-          (optional for admins), plus owner and created date for reference.
+          Columns: title, sku, description, price, quantity, imageUrl,
+          assignUserId (optional for admins), plus owner and created date for
+          reference.
         </p>
         <div className='flex flex-col gap-2'>
           {EXPORT_FORMATS.map(({ format, label }) => (
@@ -193,6 +194,7 @@ function ProductUploadModal({
                 <code className='text-xs'>description</code>,{' '}
                 <code className='text-xs'>price</code>,{' '}
                 <code className='text-xs'>quantity</code>,{' '}
+                <code className='text-xs'>imageUrl</code>,{' '}
                 <code className='text-xs'>assignUserId</code> (admins only).
               </p>
               <p className='mt-2 text-slate-500'>
