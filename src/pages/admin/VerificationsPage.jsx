@@ -4,8 +4,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Check,
   Copy,
+  Download,
   ExternalLink,
   Eye,
+  Loader2,
   Pencil,
   Plus,
   Trash2,
@@ -23,16 +25,77 @@ import { Modal } from "@/components/dialogs/Modal.jsx";
 import { ConfirmDialog } from "@/components/dialogs/ConfirmDialog.jsx";
 import { ErrorState } from "@/components/ui/ErrorState.jsx";
 import { Badge } from "@/components/ui/Badge.jsx";
+import { ProductImageCell } from "@/components/products/ProductImageCell.jsx";
 import { appConfig } from "@/config/app.config.js";
 import { useVerifications } from "@/features/verification/verificationHooks.js";
+import { verificationService } from "@/features/verification/verificationService.js";
 import { useProducts } from "@/features/products/productsHooks.js";
 import { verificationFormSchema } from "@/features/verification/verificationValidation.js";
+import {
+  buildVerificationUrl,
+  downloadVerificationQr,
+  generateQrPngDataUrl,
+  QR_DISPLAY_SIZE,
+} from "@/features/verification/verificationQr.js";
 import { formatDate, formatDateTime } from "@/utils/format/date.js";
+
+const QR_DOWNLOAD_FORMATS = [
+  { format: "png", label: "PNG" },
+  { format: "jpg", label: "JPG" },
+  { format: "svg", label: "SVG" },
+  { format: "pdf", label: "PDF" },
+];
 
 const STATUS_OPTIONS = [
   { value: "ACTIVE", label: "Active" },
   { value: "DISABLED", label: "Disabled" },
 ];
+
+const QR_TABLE_THUMB_SIZE = 96;
+
+/** Compact QR thumbnail for the verifications table. */
+function VerificationQrThumb({ qrId }) {
+  const [src, setSrc] = useState(null);
+
+  useEffect(() => {
+    if (!qrId) {
+      setSrc(null);
+      return;
+    }
+
+    let cancelled = false;
+    const verifyUrl = buildVerificationUrl(qrId, appConfig.publicAppUrl);
+
+    generateQrPngDataUrl(verifyUrl, QR_TABLE_THUMB_SIZE)
+      .then((dataUrl) => {
+        if (!cancelled) setSrc(dataUrl);
+      })
+      .catch(() => {
+        if (!cancelled) setSrc(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [qrId]);
+
+  if (!src) {
+    return (
+      <div className="flex size-9 items-center justify-center rounded-lg bg-slate-100 text-slate-400 sm:size-10">
+        <Loader2 className="size-4 animate-spin" />
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={`QR ${qrId}`}
+      className="size-9 rounded-lg bg-white object-contain p-0.5 ring-1 ring-slate-200 sm:size-10"
+      loading="lazy"
+    />
+  );
+}
 
 function VerificationFormModal({
   isOpen,
@@ -124,15 +187,50 @@ function DetailRow({ label, children }) {
 
 function VerificationDetailsModal({ isOpen, onClose, verification }) {
   const [copied, setCopied] = useState(false);
-  const appOrigin = appConfig.publicAppUrl || window.location.origin;
+  const [qrPreview, setQrPreview] = useState({
+    status: "idle",
+    dataUrl: null,
+    error: null,
+  });
+  const [downloadingFormat, setDownloadingFormat] = useState(null);
 
   const verifyUrl = verification
-    ? `${appOrigin}/verify/${verification.qrId}`
+    ? buildVerificationUrl(verification.qrId, appConfig.publicAppUrl)
     : "";
 
   useEffect(() => {
-    if (!isOpen) setCopied(false);
-  }, [isOpen]);
+    if (!isOpen) {
+      setCopied(false);
+      setQrPreview({ status: "idle", dataUrl: null, error: null });
+      setDownloadingFormat(null);
+      return;
+    }
+
+    if (!verifyUrl) return;
+
+    let cancelled = false;
+    setQrPreview({ status: "loading", dataUrl: null, error: null });
+
+    generateQrPngDataUrl(verifyUrl, QR_DISPLAY_SIZE)
+      .then((dataUrl) => {
+        if (!cancelled) {
+          setQrPreview({ status: "ready", dataUrl, error: null });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setQrPreview({
+            status: "error",
+            dataUrl: null,
+            error: "Could not generate QR code",
+          });
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, verifyUrl]);
 
   const handleCopy = async () => {
     try {
@@ -145,11 +243,29 @@ function VerificationDetailsModal({ isOpen, onClose, verification }) {
     }
   };
 
+  const handleDownload = async (format) => {
+    if (!verification?.qrId || !verifyUrl) return;
+    setDownloadingFormat(format);
+    try {
+      await downloadVerificationQr(verifyUrl, verification.qrId, format);
+      toast.success(`QR downloaded as ${format.toUpperCase()}`);
+    } catch {
+      toast.error(`Failed to download ${format.toUpperCase()}`);
+    } finally {
+      setDownloadingFormat(null);
+    }
+  };
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="QR Mapping Details"
+      title={
+        <span className="flex items-center gap-3">
+          <ProductImageCell imageUrl={verification?.product?.imageUrl} />
+          <span>QR Mapping Details</span>
+        </span>
+      }
       size="lg"
       footer={
         <Button variant="outline" onClick={onClose}>
@@ -158,76 +274,99 @@ function VerificationDetailsModal({ isOpen, onClose, verification }) {
       }
     >
       {verification && (
-        <div className="space-y-4">
-          {/* Info rows - clean and minimal */}
+        <div className="space-y-4 text-sm">
+          <div className="flex flex-col items-center gap-3 ">
+           
+            {qrPreview.status === "loading" && (
+              <div className="flex h-[180px] w-[180px] items-center justify-center rounded-lg bg-white">
+                <Loader2 className="size-6 animate-spin text-slate-400" />
+              </div>
+            )}
+            {qrPreview.status === "error" && (
+              <div className="flex h-[180px] w-[180px] items-center justify-center rounded-lg border border-red-200 bg-white px-3 text-center text-red-600">
+                {qrPreview.error}
+              </div>
+            )}
+            {qrPreview.status === "ready" && qrPreview.dataUrl && (
+              <img
+                src={qrPreview.dataUrl}
+                alt={`QR code for ${verification.qrId}`}
+                className="h-[180px] w-[180px] rounded-lg bg-slate-50 p-2 shadow-sm"
+              />
+            )}
+
+            <div className="flex w-full items-center gap-3 rounded-lg border border-slate-200 bg-green-50 p-2">
+              <div
+                className={`h-3 w-3 shrink-0 rounded-full ${
+                  verification.status === "ACTIVE"
+                    ? "bg-green-500"
+                    : "bg-slate-400"
+                }`}
+              />
+              <span className="font-medium text-slate-900">
+                Status:
+                <span
+                  className={`ml-2 ${
+                    verification.status === "ACTIVE"
+                      ? "text-green-700"
+                      : "text-slate-600"
+                  }`}
+                >
+                  {verification.status === "ACTIVE" ? "Active" : "Disabled"}
+                </span>
+              </span>
+              <span className="ml-auto text-slate-500">
+                {verification.status === "ACTIVE"
+                  ? "✓ Ready to scan"
+                  : "✕ Not scannable"}
+              </span>
+            </div>
+          </div>
+
           <dl className="divide-y divide-slate-100">
             <DetailRow label="Product">
-              <div className="text-xs font-medium">
+              <div className="font-medium">
                 {verification.product?.title || (
-                  <span className="text-red-500 text-sm">Not assigned</span>
+                  <span className="text-red-500">Not assigned</span>
                 )}
               </div>
             </DetailRow>
 
             <DetailRow label="QR ID">
-              <code className="bg-slate-100 px-2.5 py-1 rounded text-sm font-mono">
+              <code className="rounded bg-slate-100 px-2.5 py-1 font-mono">
                 {verification.qrId}
               </code>
             </DetailRow>
 
             <DetailRow label="Total Scans">
-              <span className="text-sm font-medium">
+              <span className="font-medium">
                 {verification.totalScans ?? 0}
               </span>
             </DetailRow>
 
             <DetailRow label="First Scan">
-              <div className="text-xs font-medium">
+              <div className="font-medium">
                 {verification.firstScannedAt ? (
                   formatDateTime(verification.firstScannedAt)
                 ) : (
-                  <span className="text-sm text-slate-400">Never</span>
+                  <span className="text-slate-400">Never</span>
                 )}
               </div>
             </DetailRow>
 
             <DetailRow label="Last Scan">
-              <div className="text-xs font-medium">
+              <div className="font-medium">
                 {verification.lastScannedAt ? (
                   formatDateTime(verification.lastScannedAt)
                 ) : (
-                  <span className="text-sm text-slate-400">Never</span>
+                  <span className="text-slate-400">Never</span>
                 )}
               </div>
             </DetailRow>
           </dl>
 
-          {/* Status badge with icon */}
-          <div className="flex items-center gap-3 p-2 rounded-lg bg-green-50 border border-slate-200">
-            <div
-              className={`
-          w-3 h-3 rounded-full flex-shrink-0
-          ${verification.status === "ACTIVE" ? "bg-green-500" : "bg-slate-400"}
-        `}
-            />
-            <span className="text-sm font-medium text-slate-900">
-              Status:
-              <span
-                className={`ml-2 ${verification.status === "ACTIVE" ? "text-green-700" : "text-slate-600"}`}
-              >
-                {verification.status === "ACTIVE" ? "Active" : "Disabled"}
-              </span>
-            </span>
-            <span className="text-sm text-slate-500 ml-auto">
-              {verification.status === "ACTIVE"
-                ? "✓ Ready to scan"
-                : "✕ Not scannable"}
-            </span>
-          </div>
-
-          {/* Verification URL - simplified */}
-          <div className="pt-3">
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+          <div>
+            <label className="mb-2 block font-medium text-slate-700">
               Verification URL
             </label>
             <div className="flex gap-2">
@@ -235,7 +374,7 @@ function VerificationDetailsModal({ isOpen, onClose, verification }) {
                 readOnly
                 value={verifyUrl}
                 onFocus={(e) => e.target.select()}
-                className="flex-1 bg-slate-50 text-xs"
+                className="flex-1 bg-slate-50 text-sm"
                 containerClassName="flex-1"
               />
               <Button
@@ -255,9 +394,32 @@ function VerificationDetailsModal({ isOpen, onClose, verification }) {
                 Open
               </Button>
             </div>
-            <p className="mt-2 text-xs text-slate-400">
-              URL encoded in the QR code
+            <p className="mt-2 text-slate-400">
+              Encoded in the QR code above
             </p>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-slate-700">
+              Download QR Code
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {QR_DOWNLOAD_FORMATS.map(({ format, label }) => (
+                <Button
+                  key={format}
+                  variant="outline"
+                  size="sm"
+                  icon={Download}
+                  disabled={
+                    qrPreview.status !== "ready" || Boolean(downloadingFormat)
+                  }
+                  isLoading={downloadingFormat === format}
+                  onClick={() => handleDownload(format)}
+                >
+                  {label}
+                </Button>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -290,6 +452,7 @@ export default function VerificationsPage() {
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [viewing, setViewing] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
+  const [mappedProductIds, setMappedProductIds] = useState([]);
   const selectAllCheckboxRef = useRef(null);
 
   useEffect(() => {
@@ -300,14 +463,63 @@ export default function VerificationsPage() {
     loadVerifications();
   }, [loadVerifications, filters.page, filters.search, filters.status]);
 
-  const productOptions = useMemo(
-    () =>
-      products.map((p) => ({
+  useEffect(() => {
+    if (!formOpen) return;
+
+    let cancelled = false;
+
+    const loadMappedProductIds = async () => {
+      const used = new Set();
+      let page = 1;
+      let totalPages = 1;
+
+      try {
+        do {
+          const result = await verificationService.list({
+            page,
+            limit: 100,
+          });
+          for (const row of result.items || []) {
+            const productId = row.productId || row.product?.id;
+            if (productId) used.add(productId);
+          }
+          totalPages = result.meta?.totalPages || 1;
+          page += 1;
+        } while (page <= totalPages && page <= 50);
+
+        if (!cancelled) setMappedProductIds([...used]);
+      } catch {
+        if (!cancelled) {
+          setMappedProductIds(
+            items
+              .map((row) => row.productId || row.product?.id)
+              .filter(Boolean),
+          );
+        }
+      }
+    };
+
+    loadMappedProductIds();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [formOpen, items]);
+
+  const productOptions = useMemo(() => {
+    const currentProductId =
+      editing?.product?.id || editing?.productId || null;
+    const used = new Set(mappedProductIds);
+
+    return products
+      .filter(
+        (p) => !used.has(p.id) || (currentProductId && p.id === currentProductId),
+      )
+      .map((p) => ({
         value: p.id,
         label: p.sku ? `${p.title} (${p.sku})` : p.title,
-      })),
-    [products],
-  );
+      }));
+  }, [products, mappedProductIds, editing]);
 
   const visibleIds = useMemo(() => items.map((row) => row.id), [items]);
   const selectedVisibleIds = visibleIds.filter((id) =>
@@ -368,10 +580,22 @@ export default function VerificationsPage() {
       ),
     },
     {
+      key: "qrImage",
+      header: "QR",
+      render: (row) => <VerificationQrThumb qrId={row.qrId} />,
+    },
+    {
       key: "qrId",
       header: "QR ID",
       render: (row) => (
         <span className="font-mono font-medium text-slate-900">{row.qrId}</span>
+      ),
+    },
+    {
+      key: "productImage",
+      header: "Image",
+      render: (row) => (
+        <ProductImageCell imageUrl={row.product?.imageUrl} />
       ),
     },
     {

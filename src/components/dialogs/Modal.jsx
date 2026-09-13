@@ -56,33 +56,39 @@ export function Modal({
       <div
         role='dialog'
         aria-modal='true'
-        className={`relative w-full ${SIZE_CLASSES[size]} max-h-[90vh] overflow-y-auto rounded-xl bg-white shadow-xl`}
+        className={`relative flex w-full ${SIZE_CLASSES[size]} max-h-[min(90vh,100dvh)] flex-col overflow-hidden rounded-xl bg-white shadow-xl`}
       >
-        <div className='flex items-start justify-between gap-3 border-b border-slate-200 px-5 py-4'>
-          <div className='min-w-0 space-y-1.5'>
-            {title && (
-              <h2 className='text-base font-semibold text-slate-900'>
-                {title}
-              </h2>
-            )}
-            {description && (
-              <p className='text-sm text-slate-500'>{description}</p>
-            )}
-            {status && <div className='text-sm'>{status}</div>}
+        <div className='sticky top-0 z-20 shrink-0 border-b border-slate-200 bg-white px-5 py-4'>
+          <div className='flex items-start justify-between gap-3'>
+            <div className='min-w-0 space-y-1.5'>
+              {title && (
+                <h2 className='text-base font-semibold text-slate-900'>
+                  {title}
+                </h2>
+              )}
+              {description && (
+                <p className='text-sm text-slate-500'>{description}</p>
+              )}
+              {status && <div className='text-sm'>{status}</div>}
+            </div>
+            <button
+              type='button'
+              onClick={onClose}
+              className='shrink-0 rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600'
+              aria-label='Close'
+            >
+              <X className='size-5' />
+            </button>
           </div>
-          <button
-            type='button'
-            onClick={onClose}
-            className='shrink-0 rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600'
-            aria-label='Close'
-          >
-            <X className='size-5' />
-          </button>
         </div>
-        <div className='p-4'>{children}</div>
+
+        <div className='min-h-0 flex-1 overflow-y-auto overscroll-contain p-4'>
+          {children}
+        </div>
+
         {footer && (
-          <div className='flex justify-end gap-2 border-t border-slate-200 px-5 py-4'>
-            {footer}
+          <div className='sticky bottom-0 z-20 shrink-0 border-t border-slate-200 bg-white px-5 py-4'>
+            <div className='flex justify-end gap-2'>{footer}</div>
           </div>
         )}
       </div>
