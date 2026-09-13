@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/Button.jsx';
 import { Input } from '@/components/forms/Input.jsx';
 import { Textarea } from '@/components/forms/Textarea.jsx';
 import { Select } from '@/components/forms/Select.jsx';
+import { CountrySelect } from '@/components/forms/CountrySelect.jsx';
+import { CountryFlag } from '@/components/ui/CountryFlag.jsx';
 import { Modal } from '@/components/dialogs/Modal.jsx';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog.jsx';
 import { ErrorState } from '@/components/ui/ErrorState.jsx';
@@ -95,7 +97,15 @@ function CustomerFormModal({
   }, [isOpen, selectedCountryId, loadBranches, updateBranchFilters]);
 
   const countryOptions = useMemo(
-    () => countries.map((country) => ({ value: country.id, label: country.name })),
+    () =>
+      countries.map((country) => ({
+        value: country.id,
+        code: country.code || '',
+        name: country.name,
+        label: country.code
+          ? `${country.name} (${country.code})`
+          : country.name,
+      })),
     [countries],
   );
 
@@ -151,20 +161,23 @@ function CustomerFormModal({
           disabled={isLoading}
           {...register('phone')}
         />
-        <Select
+        <CountrySelect
           id='countryId'
           label='Country'
           placeholder='Select country'
           options={countryOptions}
+          value={selectedCountryId || ''}
           error={errors.countryId?.message}
           disabled={isLoading || lockLocation}
-          {...register('countryId', {
-            onChange: (event) => {
-              setValue('countryId', event.target.value);
-              setValue('branchId', '');
-            },
-          })}
+          onChange={(event) => {
+            setValue('countryId', event.target.value, {
+              shouldValidate: true,
+              shouldDirty: true,
+            });
+            setValue('branchId', '');
+          }}
         />
+        <input type='hidden' {...register('countryId')} />
         <Select
           id='branchId'
           label='Branch'
@@ -242,7 +255,15 @@ export default function CustomersPage() {
     {
       key: 'country',
       header: 'Country',
-      render: (row) => row.country?.name || '—',
+      render: (row) =>
+        row.country?.name ? (
+          <span className='inline-flex items-center gap-2 text-slate-900'>
+            {row.country.code ? <CountryFlag code={row.country.code} /> : null}
+            {row.country.name}
+          </span>
+        ) : (
+          '—'
+        ),
     },
     {
       key: 'branch',
