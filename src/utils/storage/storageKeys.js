@@ -3,4 +3,6 @@ export const STORAGE_KEYS = {
   REFRESH_TOKEN: 'inventory.refreshToken',
   USER: 'inventory.user',
   CART: 'inventory.cart',
+  /** QR ids already scanned on this browser (UX dedupe only — not security). */
+  VERIFIED_QR_IDS: 'inventory.verifiedQrIds',
 };

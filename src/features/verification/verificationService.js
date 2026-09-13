@@ -1,15 +1,15 @@
 import { verificationAPI } from "./verificationAPI.js";
 import { unwrapData, unwrapList } from "@/config/api/config.response.js";
+import { normalizeStoredQrId } from "./verificationScannedStorage.js";
 
 /**
- * In-flight public verify requests keyed by normalized qrId.
- * React StrictMode (and rapid remounts) can invoke verify twice for the same
- * code; sharing one promise ensures a single HTTP call → single scan record.
- * Cleared when the request settles so refresh / "Try again" still create new scans.
+ * In-flight public verify requests keyed by qrId + recordScan flag.
+ * React StrictMode remounts share one in-flight promise per key.
  */
-const verifyInflightByQrId = new Map();
+const verifyInflightByKey = new Map();
 
-const normalizeVerifyKey = (qrId) => String(qrId ?? "").trim().toUpperCase();
+const verifyInflightKey = (qrId, recordScan) =>
+  `${normalizeStoredQrId(qrId)}:${recordScan ? "1" : "0"}`;
 
 export const verificationService = {
   async list(params) {
@@ -41,21 +41,26 @@ export const verificationService = {
     return unwrapData(data);
   },
 
-  async verify(qrId) {
-    const key = normalizeVerifyKey(qrId);
-    const existing = key ? verifyInflightByQrId.get(key) : null;
+  /**
+   * @param {string} qrId
+   * @param {{ recordScan?: boolean }} [options]
+   *   recordScan=true (default) appends a scan; false returns current stats only.
+   */
+  async verify(qrId, { recordScan = true } = {}) {
+    const key = verifyInflightKey(qrId, recordScan);
+    const existing = key ? verifyInflightByKey.get(key) : null;
     if (existing) return existing;
 
     const request = (async () => {
       try {
-        const { data } = await verificationAPI.verify(qrId);
+        const { data } = await verificationAPI.verify(qrId, { recordScan });
         return unwrapData(data);
       } finally {
-        if (key) verifyInflightByQrId.delete(key);
+        if (key) verifyInflightByKey.delete(key);
       }
     })();
 
-    if (key) verifyInflightByQrId.set(key, request);
+    if (key) verifyInflightByKey.set(key, request);
     return request;
   },
 };

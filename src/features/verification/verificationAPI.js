@@ -15,6 +15,6 @@ export const verificationAPI = {
       data: { ids },
     }),
   // Public — no auth required.
-  verify: (qrId) =>
-    apiClient.get(HTTP_ENDPOINTS.VERIFICATIONS.PUBLIC_VERIFY(qrId)),
+  verify: (qrId, params) =>
+    apiClient.get(HTTP_ENDPOINTS.VERIFICATIONS.PUBLIC_VERIFY(qrId), { params }),
 };

@@ -9,6 +9,11 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { verificationService } from "@/features/verification/verificationService.js";
+import {
+  hasScannedQrId,
+  markQrIdScanned,
+  normalizeStoredQrId,
+} from "@/features/verification/verificationScannedStorage.js";
 import { formatDateTime } from "@/utils/format/date.js";
 import { resolveMediaUrl } from "@/utils/media/url.js";
 
@@ -24,32 +29,43 @@ export default function VerifyPage() {
     error: null,
   });
 
-  const runVerify = useCallback(async () => {
-    setState({ status: "loading", data: null, error: null });
-    try {
-      const data = await verificationService.verify(qrId);
-      setState({ status: "success", data, error: null });
-    } catch (error) {
-      setState({
-        status: "error",
-        data: null,
-        error: error?.message || "This QR code could not be verified.",
-      });
-    }
-  }, [qrId]);
+  const verifyQr = useCallback(
+    async ({ recordScan }) => {
+      setState({ status: "loading", data: null, error: null });
+      try {
+        const data = await verificationService.verify(qrId, { recordScan });
+        if (recordScan) {
+          markQrIdScanned(normalizeStoredQrId(qrId));
+        }
+        setState({ status: "success", data, error: null });
+      } catch (error) {
+        setState({
+          status: "error",
+          data: null,
+          error: error?.message || "This QR code could not be verified.",
+        });
+      }
+    },
+    [qrId],
+  );
 
   useEffect(() => {
     let cancelled = false;
 
     setState({ status: "loading", data: null, error: null });
 
-    // Call verify immediately (sync start) so StrictMode remounts share one in-flight request.
+    const normalizedQrId = normalizeStoredQrId(qrId);
+    const recordScan = !hasScannedQrId(normalizedQrId);
+
+    // Start immediately so StrictMode remounts share one in-flight request.
     verificationService
-      .verify(qrId)
+      .verify(qrId, { recordScan })
       .then((data) => {
-        if (!cancelled) {
-          setState({ status: "success", data, error: null });
+        if (cancelled) return;
+        if (recordScan) {
+          markQrIdScanned(normalizedQrId);
         }
+        setState({ status: "success", data, error: null });
       })
       .catch((error) => {
         if (!cancelled) {
@@ -106,7 +122,11 @@ export default function VerifyPage() {
               <p className="font-mono text-sm text-slate-400">Code: {qrId}</p>
               <button
                 type="button"
-                onClick={runVerify}
+                onClick={() =>
+                  verifyQr({
+                    recordScan: !hasScannedQrId(normalizeStoredQrId(qrId)),
+                  })
+                }
                 className="inline-flex items-center justify-center rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
               >
                 Try again
@@ -200,7 +220,7 @@ export default function VerifyPage() {
                 >
                   <Check className="size-3" strokeWidth={3} />
                 </span>
-                <p className="text-xs">
+                <p className="text-sm">
                   {state.data.isFirstScan
                     ? "Verified — First scan of this code. This product is genuine."
                     : "Verified — This code has previously been scanned. Multiple scans are normal. If you have any concerns, please contact the manufacturer."}
