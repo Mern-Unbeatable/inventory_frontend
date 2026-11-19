@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/StatusChip.jsx';
 import { ErrorState } from '@/components/ui/ErrorState.jsx';
 import { ProductImageCell } from '@/components/products/ProductImageCell.jsx';
+import { ProductPickerModal } from '@/components/products/ProductPickerModal.jsx';
 import { useInventory } from '@/features/inventory/inventoryHooks.js';
 import {
   adjustQuantitySchema,
@@ -39,7 +40,6 @@ import {
 } from '@/features/inventory/inventoryValidation.js';
 import { useBranches } from '@/features/branches/branchesHooks.js';
 import { useCountries } from '@/features/countries/countriesHooks.js';
-import { useProducts } from '@/features/products/productsHooks.js';
 import { useUsers } from '@/features/users/usersHooks.js';
 import { formatCurrency, formatNumber } from '@/utils/format/currency.js';
 import { formatDateTime } from '@/utils/format/date.js';
@@ -56,71 +56,150 @@ const TRANSACTION_TONE = {
   MANUAL_UPDATE: 'slate',
 };
 
-function AssignModal({
-  isOpen,
-  onClose,
-  users,
-  products,
-  onSubmit,
-  isLoading,
-}) {
+function AssignModal({ isOpen, onClose, users, onSubmit, isLoading }) {
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(assignStockSchema),
     defaultValues: { userId: '', productId: '', quantity: 0 },
   });
 
+  const productId = watch('productId');
+
   useEffect(() => {
-    if (isOpen) reset({ userId: '', productId: '', quantity: 0 });
+    if (!isOpen) {
+      setPickerOpen(false);
+      setSelectedProduct(null);
+      return;
+    }
+    reset({ userId: '', productId: '', quantity: 0 });
+    setSelectedProduct(null);
+    setPickerOpen(false);
   }, [isOpen, reset]);
 
+  const handlePickProduct = (product) => {
+    setSelectedProduct(product);
+    setValue('productId', product.id, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+    setPickerOpen(false);
+  };
+
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title='Assign product'
-      description='Assign a master product to a seller with starting quantity'
-      footer={
-        <>
-          <Button variant='outline' onClick={onClose} disabled={isLoading}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit(onSubmit)} isLoading={isLoading}>
-            Assign
-          </Button>
-        </>
-      }
-    >
-      <form className='space-y-4' onSubmit={handleSubmit(onSubmit)}>
-        <Select
-          id='userId'
-          label='Seller'
-          placeholder='Select seller'
-          options={users}
-          error={errors.userId?.message}
-          {...register('userId')}
-        />
-        <Select
-          id='productId'
-          label='Product'
-          placeholder='Select product'
-          options={products}
-          error={errors.productId?.message}
-          {...register('productId')}
-        />
-        <Input
-          id='quantity'
-          label='Initial quantity'
-          type='number'
-          error={errors.quantity?.message}
-          {...register('quantity')}
-        />
-      </form>
-    </Modal>
+    <>
+      <Modal
+        isOpen={isOpen}
+        onClose={() => {
+          if (pickerOpen) return;
+          onClose?.();
+        }}
+        closeOnBackdrop={false}
+        blurBackdrop={!pickerOpen}
+        title='Assign product'
+        description='Assign a master product to a seller with starting quantity'
+        footer={
+          <>
+            <Button
+              variant='outline'
+              onClick={onClose}
+              disabled={isLoading || pickerOpen}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmit(onSubmit)}
+              isLoading={isLoading}
+              disabled={pickerOpen}
+            >
+              Assign
+            </Button>
+          </>
+        }
+      >
+        <form className='space-y-4' onSubmit={handleSubmit(onSubmit)}>
+          <Select
+            id='userId'
+            label='Seller'
+            placeholder='Select seller'
+            options={users}
+            error={errors.userId?.message}
+            {...register('userId')}
+          />
+
+          <div>
+            <label className='mb-1.5 block text-sm font-medium text-slate-700'>
+              Product
+            </label>
+            <input type='hidden' {...register('productId')} />
+            <div
+              className={`flex items-center gap-3 rounded-lg border bg-white p-3 ${
+                errors.productId ? 'border-red-300' : 'border-slate-200'
+              }`}
+            >
+              {selectedProduct || productId ? (
+                <>
+                  <ProductImageCell imageUrl={selectedProduct?.imageUrl} />
+                  <div className='min-w-0 flex-1'>
+                    <p className='truncate text-sm font-medium text-slate-900'>
+                      {selectedProduct?.title || 'Selected product'}
+                    </p>
+                    <p className='truncate text-xs text-slate-500'>
+                      {selectedProduct?.sku
+                        ? `SKU: ${selectedProduct.sku}`
+                        : productId
+                          ? `ID: ${productId}`
+                          : 'No SKU'}
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <div className='min-w-0 flex-1'>
+                  <p className='text-sm text-slate-500'>No product selected</p>
+                </div>
+              )}
+              <Button
+                type='button'
+                variant='outline'
+                size='sm'
+                disabled={isLoading}
+                onClick={() => setPickerOpen(true)}
+              >
+                {selectedProduct || productId ? 'Change' : 'Choose product'}
+              </Button>
+            </div>
+            {errors.productId?.message ? (
+              <p className='mt-1.5 text-sm text-red-600'>
+                {errors.productId.message}
+              </p>
+            ) : null}
+          </div>
+
+          <Input
+            id='quantity'
+            label='Initial quantity'
+            type='number'
+            error={errors.quantity?.message}
+            {...register('quantity')}
+          />
+        </form>
+      </Modal>
+
+      <ProductPickerModal
+        isOpen={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        onSelect={handlePickProduct}
+        selectedProductId={productId || null}
+      />
+    </>
   );
 }
 
@@ -483,7 +562,6 @@ export default function InventoryPage() {
     loadBranches,
     updateFilters: updateBranchFilters,
   } = useBranches();
-  const { items: products, loadProducts } = useProducts();
   const {
     items: users,
     loadUsers,
@@ -506,13 +584,11 @@ export default function InventoryPage() {
     updateBranchFilters({ page: 1, limit: 100, search: '', countryId: '' });
     updateUserFilters({ page: 1, limit: 100, search: '', role: 'SELLER' });
     loadBranches();
-    loadProducts({ page: 1, limit: 100, search: '' });
     loadUsers();
   }, [
     isAdmin,
     loadCountries,
     loadBranches,
-    loadProducts,
     loadUsers,
     updateBranchFilters,
     updateUserFilters,
@@ -565,12 +641,6 @@ export default function InventoryPage() {
         .map((u) => ({ value: u.id, label: `${u.name} (${u.email})` })),
     [users, filters.branchId],
   );
-  const productOptions = useMemo(
-    () =>
-      products.map((p) => ({ value: p.id, label: `${p.title} (${p.sku})` })),
-    [products],
-  );
-
   const columns = useMemo(
     () => [
       {
@@ -853,7 +923,6 @@ export default function InventoryPage() {
         isOpen={assignOpen}
         onClose={() => setAssignOpen(false)}
         users={userOptions}
-        products={productOptions}
         isLoading={isMutating}
         onSubmit={async (values) => {
           const result = await assignStock(values);
