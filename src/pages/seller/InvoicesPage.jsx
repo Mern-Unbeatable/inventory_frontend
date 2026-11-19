@@ -43,6 +43,7 @@ function CreateInvoiceModal({
 }) {
   const [inventoryItems, setInventoryItems] = useState([]);
   const [stockLoading, setStockLoading] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const {
     register,
@@ -85,6 +86,7 @@ function CreateInvoiceModal({
         items: [{ productId: '', quantity: 1 }],
       });
       setInventoryItems([]);
+      setPickerOpen(false);
     }
   }, [isOpen, reset]);
 
@@ -166,20 +168,31 @@ function CreateInvoiceModal({
   return (
     <Modal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={() => {
+        if (pickerOpen) return;
+        onClose?.();
+      }}
+      closeOnBackdrop={false}
+      blurBackdrop={!pickerOpen}
       title='Create invoice'
       description='Created as a DRAFT — confirm it later to deduct stock'
       size='xl'
       footer={
         <>
-          <Button variant='outline' onClick={onClose} disabled={isLoading}>
+          <Button
+            variant='outline'
+            onClick={onClose}
+            disabled={isLoading || pickerOpen}
+          >
             Cancel
           </Button>
           <Button
             onClick={handleSubmit(onSubmit)}
             isLoading={isLoading}
             disabled={
-              itemsDisabled || (!stockLoading && !productOptions.length)
+              pickerOpen ||
+              itemsDisabled ||
+              (!stockLoading && !productOptions.length)
             }
           >
             Create draft
@@ -224,6 +237,7 @@ function CreateInvoiceModal({
           productOptions={productOptions}
           stockLoading={stockLoading}
           disabled={itemsDisabled}
+          onPickerOpenChange={setPickerOpen}
           emptyStockMessage={
             isAdmin
               ? 'This seller has no in-stock assigned products.'

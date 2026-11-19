@@ -9,7 +9,19 @@ const toOption = (row) => ({
   sku: row.product.sku || '—',
   price: row.product.price ?? 0,
   quantity: Number(row.quantity) || 0,
+  imageUrl: row.product.imageUrl || null,
 });
+
+/** Map rich invoice options → ProductPickerModal product shape. */
+export const mapOptionsToPickerProducts = (options = []) =>
+  (options || []).map((option) => ({
+    id: option.value,
+    title: option.title || option.label,
+    sku: option.sku,
+    imageUrl: option.imageUrl || null,
+    price: option.price,
+    quantity: option.quantity,
+  }));
 
 /**
  * Map inventory API rows → product options.
@@ -43,20 +55,12 @@ export const getRowProductOptions = (allOptions, watchedItems, rowIndex) => {
   );
   const currentId = watchedItems?.[rowIndex]?.productId;
 
-  return (allOptions || [])
-    .filter((option) => {
-      if (option.value === currentId) return true;
-      if (selectedElsewhere.has(option.value)) return false;
-      // Out-of-stock products are never newly selectable
-      return option.quantity > 0;
-    })
-    .map((option) => ({
-      value: option.value,
-      label:
-        option.quantity > 0
-          ? option.title
-          : `${option.title} (Out of stock)`,
-    }));
+  return (allOptions || []).filter((option) => {
+    if (option.value === currentId) return true;
+    if (selectedElsewhere.has(option.value)) return false;
+    // Out-of-stock products are never newly selectable
+    return option.quantity > 0;
+  });
 };
 
 export const getProductStock = (allOptions, productId) => {

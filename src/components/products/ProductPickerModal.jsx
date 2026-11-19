@@ -5,6 +5,7 @@ import { SearchBar } from '@/components/common/SearchBar.jsx';
 import { Button } from '@/components/ui/Button.jsx';
 import { ProductImageCell } from '@/components/products/ProductImageCell.jsx';
 import { productsService } from '@/features/products/productsService.js';
+import { formatCurrency } from '@/utils/format/currency.js';
 
 const PAGE_SIZE = 50;
 
@@ -13,6 +14,15 @@ const ProductPickerRow = memo(function ProductPickerRow({
   isSelected,
   onSelect,
 }) {
+  const metaParts = [];
+  if (product.sku) metaParts.push(`SKU: ${product.sku}`);
+  if (product.price != null && product.price !== '') {
+    metaParts.push(formatCurrency(product.price));
+  }
+  if (product.quantity != null && product.quantity !== '') {
+    metaParts.push(`${product.quantity} in stock`);
+  }
+
   return (
     <li
       className='flex items-center gap-3 px-3 py-2.5 hover:bg-slate-50'
@@ -27,7 +37,7 @@ const ProductPickerRow = memo(function ProductPickerRow({
           {product.title}
         </p>
         <p className='truncate text-xs text-slate-500'>
-          {product.sku ? `SKU: ${product.sku}` : 'No SKU'}
+          {metaParts.length ? metaParts.join(' · ') : 'No SKU'}
         </p>
       </div>
       <button
@@ -45,9 +55,17 @@ const ProductPickerRow = memo(function ProductPickerRow({
   );
 });
 
+const matchesSearch = (product, query) => {
+  if (!query) return true;
+  const haystack = `${product.title || ''} ${product.sku || ''}`.toLowerCase();
+  return haystack.includes(query);
+};
+
 /**
- * Nested product picker with image rows, sticky search, and Load more.
- * Filters out products already mapped to a QR (except allowProductId).
+ * Product picker with image rows, sticky search, and Load more.
+ *
+ * - Default: loads from products API (server search/pagination).
+ * - When `products` is passed: uses that local list (client search + load more).
  */
 export function ProductPickerModal({
   isOpen,
@@ -56,7 +74,13 @@ export function ProductPickerModal({
   excludeProductIds = [],
   allowProductId = null,
   selectedProductId = null,
+  products: localProducts = null,
+  title = 'Select a product',
+  description = 'Search and pick a product.',
+  emptyMessage = 'No available products.',
 }) {
+  const isLocalMode = Array.isArray(localProducts);
+
   const [search, setSearch] = useState('');
   const [items, setItems] = useState([]);
   const [page, setPage] = useState(1);
@@ -65,13 +89,12 @@ export function ProductPickerModal({
   const [status, setStatus] = useState('idle');
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState(null);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const excluded = useMemo(
     () => new Set(excludeProductIds.filter(Boolean)),
     [excludeProductIds],
   );
-
-  const hasMore = page < totalPages;
 
   useEffect(() => {
     if (!isOpen) {
@@ -83,11 +106,21 @@ export function ProductPickerModal({
       setError(null);
       setStatus('idle');
       setIsLoadingMore(false);
+      setVisibleCount(PAGE_SIZE);
     }
   }, [isOpen]);
 
+  // Local inventory/catalog mode
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen || !isLocalMode) return;
+    setStatus('succeeded');
+    setError(null);
+    setVisibleCount(PAGE_SIZE);
+  }, [isOpen, isLocalMode, localProducts, search]);
+
+  // Server catalog mode
+  useEffect(() => {
+    if (!isOpen || isLocalMode) return;
 
     let cancelled = false;
 
@@ -123,10 +156,15 @@ export function ProductPickerModal({
     return () => {
       cancelled = true;
     };
-  }, [isOpen, search]);
+  }, [isOpen, isLocalMode, search]);
 
   const handleLoadMore = async () => {
-    if (!hasMore || isLoadingMore || status === 'loading') return;
+    if (isLocalMode) {
+      setVisibleCount((current) => current + PAGE_SIZE);
+      return;
+    }
+
+    if (page >= totalPages || isLoadingMore || status === 'loading') return;
 
     const nextPage = page + 1;
     setIsLoadingMore(true);
@@ -148,22 +186,60 @@ export function ProductPickerModal({
     }
   };
 
-  const visibleProducts = useMemo(
-    () =>
-      items.filter(
-        (product) =>
-          !excluded.has(product.id) ||
-          (allowProductId && product.id === allowProductId),
-      ),
-    [items, excluded, allowProductId],
-  );
+  const query = search.trim().toLowerCase();
+
+  const visibleProducts = useMemo(() => {
+    const source = isLocalMode ? localProducts : items;
+    const filtered = (source || []).filter((product) => {
+      const id = product.id;
+      const allowed =
+        !excluded.has(id) || (allowProductId && id === allowProductId);
+      return allowed && matchesSearch(product, query);
+    });
+
+    if (isLocalMode) {
+      return filtered.slice(0, visibleCount);
+    }
+    return filtered;
+  }, [
+    isLocalMode,
+    localProducts,
+    items,
+    excluded,
+    allowProductId,
+    query,
+    visibleCount,
+  ]);
+
+  const filteredTotal = useMemo(() => {
+    if (!isLocalMode) return total;
+    return (localProducts || []).filter((product) => {
+      const id = product.id;
+      const allowed =
+        !excluded.has(id) || (allowProductId && id === allowProductId);
+      return allowed && matchesSearch(product, query);
+    }).length;
+  }, [
+    isLocalMode,
+    localProducts,
+    excluded,
+    allowProductId,
+    query,
+    total,
+  ]);
+
+  const hasMore = isLocalMode
+    ? visibleProducts.length < filteredTotal
+    : page < totalPages;
+
+  const showingCount = isLocalMode ? visibleProducts.length : items.length;
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title='Select a product'
-      description='Search the catalog and pick a product for this QR mapping.'
+      title={title}
+      description={description}
       size='xl'
       zIndexClass='z-[60]'
       closeOnBackdrop={false}
@@ -201,9 +277,7 @@ export function ProductPickerModal({
               No available products
             </p>
             <p className='text-sm text-slate-500'>
-              {search
-                ? 'Try a different search.'
-                : 'All products may already be mapped to a QR.'}
+              {search ? 'Try a different search.' : emptyMessage}
             </p>
           </div>
         ) : null}
@@ -223,8 +297,8 @@ export function ProductPickerModal({
 
             <div className='flex flex-col items-center gap-2'>
               <p className='text-xs text-slate-500'>
-                Showing {items.length}
-                {total ? ` of ${total}` : ''} products
+                Showing {showingCount}
+                {filteredTotal ? ` of ${filteredTotal}` : ''} products
               </p>
               {hasMore ? (
                 <Button

@@ -46,6 +46,7 @@ const PAYMENT_TONE = {
 function EditInvoiceModal({ isOpen, onClose, invoice, onSubmit, isLoading }) {
   const [inventoryItems, setInventoryItems] = useState([]);
   const [stockLoading, setStockLoading] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const {
     register,
@@ -128,16 +129,29 @@ function EditInvoiceModal({ isOpen, onClose, invoice, onSubmit, isLoading }) {
   return (
     <Modal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={() => {
+        if (pickerOpen) return;
+        onClose?.();
+      }}
+      closeOnBackdrop={false}
+      blurBackdrop={!pickerOpen}
       title='Edit draft invoice'
       description='Only draft invoices can be edited — quantities cannot exceed seller stock'
       size='2xl'
       footer={
         <>
-          <Button variant='outline' onClick={onClose} disabled={isLoading}>
+          <Button
+            variant='outline'
+            onClick={onClose}
+            disabled={isLoading || pickerOpen}
+          >
             Cancel
           </Button>
-          <Button onClick={handleSubmit(onSubmit)} isLoading={isLoading}>
+          <Button
+            onClick={handleSubmit(onSubmit)}
+            isLoading={isLoading}
+            disabled={pickerOpen}
+          >
             Save changes
           </Button>
         </>
@@ -152,6 +166,7 @@ function EditInvoiceModal({ isOpen, onClose, invoice, onSubmit, isLoading }) {
           errors={errors}
           productOptions={productOptions}
           stockLoading={stockLoading}
+          onPickerOpenChange={setPickerOpen}
           emptyStockMessage='This seller has no in-stock assigned products.'
         />
         <Textarea
