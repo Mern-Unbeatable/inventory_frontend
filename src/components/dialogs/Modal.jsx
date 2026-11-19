@@ -2,6 +2,9 @@ import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
+/** Tracks stacked modals so body scroll stays locked until the last one closes. */
+let openModalCount = 0;
+
 const SIZE_CLASSES = {
   sm: 'max-w-sm',
   md: 'max-w-md',
@@ -26,7 +29,15 @@ export function Modal({
   status,
   size = 'md',
   footer,
+  /** Optional fixed strip under the header (e.g. search) — does not scroll. */
+  toolbar,
   children,
+  /** When false, clicking the backdrop does not close the modal. */
+  closeOnBackdrop = true,
+  /** When false, skips backdrop blur (smoother scroll in nested/heavy modals). */
+  blurBackdrop = true,
+  /** Tailwind z-index class for nested modals (default z-50). */
+  zIndexClass = 'z-50',
 }) {
   useEffect(() => {
     if (!isOpen) return;
@@ -35,28 +46,32 @@ export function Modal({
       if (event.key === 'Escape') onClose?.();
     };
 
+    openModalCount += 1;
     document.addEventListener('keydown', handleKeyDown);
     document.body.style.overflow = 'hidden';
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = '';
+      openModalCount = Math.max(0, openModalCount - 1);
+      if (openModalCount === 0) {
+        document.body.style.overflow = '';
+      }
     };
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
   return createPortal(
-    <div className='fixed inset-0 z-50 flex items-center justify-center p-4'>
+    <div className={`fixed inset-0 ${zIndexClass} flex items-center justify-center p-4`}>
       <div
-        className='absolute inset-0 bg-black/45 backdrop-blur-xs'
-        onClick={onClose}
+        className={`absolute inset-0 bg-black/45 ${blurBackdrop ? 'backdrop-blur-xs' : ''}`}
+        onClick={closeOnBackdrop ? onClose : undefined}
         aria-hidden='true'
       />
       <div
         role='dialog'
         aria-modal='true'
-        className={`relative flex w-full ${SIZE_CLASSES[size]} max-h-[min(90vh,100dvh)] flex-col overflow-hidden rounded-xl bg-white shadow-xl`}
+        className={`relative flex w-full ${SIZE_CLASSES[size]} max-h-[min(90vh,100dvh)] flex-col overflow-hidden rounded-xl bg-white shadow-xl isolate`}
       >
         <div className='sticky top-0 z-20 shrink-0 border-b border-slate-200 bg-white px-5 py-4'>
           <div className='flex items-start justify-between gap-3'>
@@ -82,7 +97,13 @@ export function Modal({
           </div>
         </div>
 
-        <div className='min-h-0 flex-1 overflow-y-auto overscroll-contain p-4'>
+        {toolbar ? (
+          <div className='shrink-0 border-b border-slate-200 bg-white px-4 py-2.5'>
+            {toolbar}
+          </div>
+        ) : null}
+
+        <div className='min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 [scrollbar-gutter:stable] [-webkit-overflow-scrolling:touch]'>
           {children}
         </div>
 

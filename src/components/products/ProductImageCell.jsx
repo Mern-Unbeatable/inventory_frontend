@@ -9,8 +9,9 @@ export function ProductImageCell({ imageUrl }) {
       <img
         src={src}
         alt=''
-        className='size-9 rounded-lg object-cover ring-1 ring-slate-200 sm:size-10'
+        className='size-9 shrink-0 rounded-lg object-cover ring-1 ring-slate-200 sm:size-10'
         loading='lazy'
+        decoding='async'
       />
     );
   }

@@ -26,10 +26,10 @@ import { ConfirmDialog } from "@/components/dialogs/ConfirmDialog.jsx";
 import { ErrorState } from "@/components/ui/ErrorState.jsx";
 import { Badge } from "@/components/ui/Badge.jsx";
 import { ProductImageCell } from "@/components/products/ProductImageCell.jsx";
+import { ProductPickerModal } from "@/components/products/ProductPickerModal.jsx";
 import { appConfig } from "@/config/app.config.js";
 import { useVerifications } from "@/features/verification/verificationHooks.js";
 import { verificationService } from "@/features/verification/verificationService.js";
-import { useProducts } from "@/features/products/productsHooks.js";
 import { verificationFormSchema } from "@/features/verification/verificationValidation.js";
 import {
   buildVerificationUrl,
@@ -102,23 +102,36 @@ function VerificationFormModal({
   isOpen,
   onClose,
   verification,
-  products,
+  mappedProductIds = [],
   onSubmit,
   isLoading,
 }) {
   const isEditing = Boolean(verification);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(verificationFormSchema),
     defaultValues: { qrId: "", productId: "", status: "ACTIVE" },
   });
 
+  const productId = watch("productId");
+  const currentAllowProductId =
+    verification?.product?.id || verification?.productId || null;
+
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      setPickerOpen(false);
+      setSelectedProduct(null);
+      return;
+    }
     reset(
       verification
         ? {
@@ -128,50 +141,128 @@ function VerificationFormModal({
           }
         : { qrId: "", productId: "", status: "ACTIVE" },
     );
+    setSelectedProduct(verification?.product || null);
+    setPickerOpen(false);
   }, [isOpen, verification, reset]);
 
+  const handlePickProduct = (product) => {
+    setSelectedProduct(product);
+    setValue("productId", product.id, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+    setPickerOpen(false);
+  };
+
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={isEditing ? "Edit QR mapping" : "Register QR mapping"}
-      footer={
-        <>
-          <Button variant="outline" onClick={onClose} disabled={isLoading}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit(onSubmit)} isLoading={isLoading}>
-            {isEditing ? "Save changes" : "Create mapping"}
-          </Button>
-        </>
-      }
-    >
-      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-        <Input
-          id="qrId"
-          label="QR ID"
-          hint="The code embedded in the printed QR, e.g. ABC12345"
-          error={errors.qrId?.message}
-          disabled={isEditing}
-          {...register("qrId")}
-        />
-        <Select
-          id="productId"
-          label="Product"
-          placeholder="Select a product"
-          options={products}
-          error={errors.productId?.message}
-          {...register("productId")}
-        />
-        <Select
-          id="status"
-          label="Status"
-          options={STATUS_OPTIONS}
-          error={errors.status?.message}
-          {...register("status")}
-        />
-      </form>
-    </Modal>
+    <>
+      <Modal
+        isOpen={isOpen}
+        onClose={() => {
+          if (pickerOpen) return;
+          onClose?.();
+        }}
+        closeOnBackdrop={false}
+        blurBackdrop={!pickerOpen}
+        title={isEditing ? "Edit QR mapping" : "Register QR mapping"}
+        footer={
+          <>
+            <Button
+              variant="outline"
+              onClick={onClose}
+              disabled={isLoading || pickerOpen}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmit(onSubmit)}
+              isLoading={isLoading}
+              disabled={pickerOpen}
+            >
+              {isEditing ? "Save changes" : "Create mapping"}
+            </Button>
+          </>
+        }
+      >
+        <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+          <Input
+            id="qrId"
+            label="QR ID"
+            hint="The code embedded in the printed QR, e.g. ABC12345"
+            error={errors.qrId?.message}
+            disabled={isEditing}
+            {...register("qrId")}
+          />
+
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-slate-700">
+              Product
+            </label>
+            <input type="hidden" {...register("productId")} />
+            <div
+              className={`flex items-center gap-3 rounded-lg border bg-white p-3 ${
+                errors.productId ? "border-red-300" : "border-slate-200"
+              }`}
+            >
+              {selectedProduct || productId ? (
+                <>
+                  <ProductImageCell imageUrl={selectedProduct?.imageUrl} />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-slate-900">
+                      {selectedProduct?.title || "Selected product"}
+                    </p>
+                    <p className="truncate text-xs text-slate-500">
+                      {selectedProduct?.sku
+                        ? `SKU: ${selectedProduct.sku}`
+                        : productId
+                          ? `ID: ${productId}`
+                          : "No SKU"}
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm text-slate-500">No product selected</p>
+                </div>
+              )}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={isLoading}
+                onClick={() => setPickerOpen(true)}
+              >
+                {selectedProduct || productId
+                  ? "Change"
+                  : "Choose product"}
+              </Button>
+            </div>
+            {errors.productId?.message ? (
+              <p className="mt-1.5 text-sm text-red-600">
+                {errors.productId.message}
+              </p>
+            ) : null}
+          </div>
+
+          <Select
+            id="status"
+            label="Status"
+            options={STATUS_OPTIONS}
+            error={errors.status?.message}
+            {...register("status")}
+          />
+        </form>
+      </Modal>
+
+      <ProductPickerModal
+        isOpen={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        onSelect={handlePickProduct}
+        excludeProductIds={mappedProductIds}
+        allowProductId={currentAllowProductId}
+        selectedProductId={productId || null}
+      />
+    </>
   );
 }
 
@@ -445,8 +536,6 @@ export default function VerificationsPage() {
     bulkDeleteVerification,
   } = useVerifications();
 
-  const { items: products, loadProducts } = useProducts();
-
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [deleting, setDeleting] = useState(null);
@@ -457,10 +546,6 @@ export default function VerificationsPage() {
   const [mappedProductIds, setMappedProductIds] = useState([]);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const selectAllCheckboxRef = useRef(null);
-
-  useEffect(() => {
-    loadProducts({ limit: 100 });
-  }, [loadProducts]);
 
   useEffect(() => {
     loadVerifications();
@@ -508,21 +593,6 @@ export default function VerificationsPage() {
       cancelled = true;
     };
   }, [formOpen, items]);
-
-  const productOptions = useMemo(() => {
-    const currentProductId =
-      editing?.product?.id || editing?.productId || null;
-    const used = new Set(mappedProductIds);
-
-    return products
-      .filter(
-        (p) => !used.has(p.id) || (currentProductId && p.id === currentProductId),
-      )
-      .map((p) => ({
-        value: p.id,
-        label: p.sku ? `${p.title} (${p.sku})` : p.title,
-      }));
-  }, [products, mappedProductIds, editing]);
 
   const visibleIds = useMemo(() => items.map((row) => row.id), [items]);
   const selectedVisibleIds = visibleIds.filter((id) =>
@@ -858,7 +928,7 @@ export default function VerificationsPage() {
           setEditing(null);
         }}
         verification={editing}
-        products={productOptions}
+        mappedProductIds={mappedProductIds}
         onSubmit={async (values) => {
           const payload = editing
             ? { productId: values.productId, status: values.status }
