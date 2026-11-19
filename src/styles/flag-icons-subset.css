@@ -1,0 +1,58 @@
+/* Only the countries in src/data/countries.json — avoids bundling every flag-icons SVG. */
+
+.fib,
+.fi {
+  background-size: contain;
+  background-position: 50%;
+  background-repeat: no-repeat;
+}
+
+.fi {
+  position: relative;
+  display: inline-block;
+  width: 1.333333em;
+  line-height: 1em;
+}
+
+.fi:before {
+  content: "\00a0";
+}
+
+.fi.fis {
+  width: 1em;
+}
+
+.fi-ae {
+  background-image: url("flag-icons/flags/4x3/ae.svg");
+}
+.fi-ae.fis {
+  background-image: url("flag-icons/flags/1x1/ae.svg");
+}
+
+.fi-bd {
+  background-image: url("flag-icons/flags/4x3/bd.svg");
+}
+.fi-bd.fis {
+  background-image: url("flag-icons/flags/1x1/bd.svg");
+}
+
+.fi-et {
+  background-image: url("flag-icons/flags/4x3/et.svg");
+}
+.fi-et.fis {
+  background-image: url("flag-icons/flags/1x1/et.svg");
+}
+
+.fi-kr {
+  background-image: url("flag-icons/flags/4x3/kr.svg");
+}
+.fi-kr.fis {
+  background-image: url("flag-icons/flags/1x1/kr.svg");
+}
+
+.fi-us {
+  background-image: url("flag-icons/flags/4x3/us.svg");
+}
+.fi-us.fis {
+  background-image: url("flag-icons/flags/1x1/us.svg");
+}
