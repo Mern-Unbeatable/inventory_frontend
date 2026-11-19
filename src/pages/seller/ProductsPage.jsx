@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useSelector } from 'react-redux';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useMemo, useState } from "react";
+import { useSelector } from "react-redux";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   AlertCircle,
   Download,
@@ -16,39 +16,39 @@ import {
   Trash2,
   Weight,
   ZoomIn,
-} from 'lucide-react';
-import { PageHeader } from '@/components/common/PageHeader.jsx';
-import { SearchBar } from '@/components/common/SearchBar.jsx';
-import { Table } from '@/components/tables/Table.jsx';
-import { Pagination } from '@/components/tables/Pagination.jsx';
-import { Button } from '@/components/ui/Button.jsx';
-import { Input } from '@/components/forms/Input.jsx';
-import { Textarea } from '@/components/forms/Textarea.jsx';
-import { Select } from '@/components/forms/Select.jsx';
-import { ImageLightbox } from '@/components/dialogs/ImageLightbox.jsx';
-import { Modal } from '@/components/dialogs/Modal.jsx';
-import { ImageUploadField } from '@/components/forms/ImageUploadField.jsx';
-import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog.jsx';
-import { ErrorState } from '@/components/ui/ErrorState.jsx';
-import { useAuth } from '@/features/auth/authHooks.js';
-import { useProducts } from '@/features/products/productsHooks.js';
-import { useInventory } from '@/features/inventory/inventoryHooks.js';
-import { buildProductFormSchema } from '@/features/products/productsValidation.js';
-import { sellStockSchema } from '@/features/inventory/inventoryValidation.js';
-import { useUsers } from '@/features/users/usersHooks.js';
+} from "lucide-react";
+import { PageHeader } from "@/components/common/PageHeader.jsx";
+import { SearchBar } from "@/components/common/SearchBar.jsx";
+import { Table } from "@/components/tables/Table.jsx";
+import { Pagination } from "@/components/tables/Pagination.jsx";
+import { Button } from "@/components/ui/Button.jsx";
+import { Input } from "@/components/forms/Input.jsx";
+import { Textarea } from "@/components/forms/Textarea.jsx";
+import { Select } from "@/components/forms/Select.jsx";
+import { ImageLightbox } from "@/components/dialogs/ImageLightbox.jsx";
+import { Modal } from "@/components/dialogs/Modal.jsx";
+import { ImageUploadField } from "@/components/forms/ImageUploadField.jsx";
+import { ConfirmDialog } from "@/components/dialogs/ConfirmDialog.jsx";
+import { ErrorState } from "@/components/ui/ErrorState.jsx";
+import { useAuth } from "@/features/auth/authHooks.js";
+import { useProducts } from "@/features/products/productsHooks.js";
+import { useInventory } from "@/features/inventory/inventoryHooks.js";
+import { buildProductFormSchema } from "@/features/products/productsValidation.js";
+import { sellStockSchema } from "@/features/inventory/inventoryValidation.js";
+import { useUsers } from "@/features/users/usersHooks.js";
 import {
   AvailabilityStatus,
   ProductOwnerBadge,
   ProductOwnerCell,
   StockStatusChip,
-} from '@/components/ui/StatusChip.jsx';
-import { ProductImageCell } from '@/components/products/ProductImageCell.jsx';
-import { ProductGrid } from '@/components/products/ProductGrid.jsx';
-import { useCart } from '@/features/cart/cartHooks.js';
-import { selectCartItems } from '@/features/cart/cartSelectors.js';
-import { formatCurrency, formatNumber } from '@/utils/format/currency.js';
-import { formatDate } from '@/utils/format/date.js';
-import { resolveMediaUrl } from '@/utils/media/url.js';
+} from "@/components/ui/StatusChip.jsx";
+import { ProductImageCell } from "@/components/products/ProductImageCell.jsx";
+import { ProductGrid } from "@/components/products/ProductGrid.jsx";
+import { useCart } from "@/features/cart/cartHooks.js";
+import { selectCartItems } from "@/features/cart/cartSelectors.js";
+import { formatCurrency, formatNumber } from "@/utils/format/currency.js";
+import { formatDate } from "@/utils/format/date.js";
+import { resolveMediaUrl } from "@/utils/media/url.js";
 
 const PRODUCTS_PAGE_SIZE_OPTIONS = [10, 20, 30, 50, 100].map((value) => ({
   value: String(value),
@@ -56,9 +56,9 @@ const PRODUCTS_PAGE_SIZE_OPTIONS = [10, 20, 30, 50, 100].map((value) => ({
 }));
 
 const EXPORT_FORMATS = [
-  { format: 'csv', label: 'CSV (.csv)' },
-  { format: 'xlsx', label: 'Excel (.xlsx)' },
-  { format: 'json', label: 'JSON (.json)' },
+  { format: "csv", label: "CSV (.csv)" },
+  { format: "xlsx", label: "Excel (.xlsx)" },
+  { format: "json", label: "JSON (.json)" },
 ];
 
 function isOwnedByUser(product, userId) {
@@ -77,26 +77,26 @@ function ProductDownloadModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title='Download products'
-      description='Export products you are allowed to access as CSV, Excel, or JSON.'
-      size='sm'
+      title="Download products"
+      description="Export products you are allowed to access as CSV, Excel, or JSON."
+      size="sm"
       footer={
-        <Button variant='outline' onClick={onClose} disabled={isLoading}>
+        <Button variant="outline" onClick={onClose} disabled={isLoading}>
           Close
         </Button>
       }
     >
-      <div className='space-y-3'>
-        <p className='text-sm text-slate-600'>
+      <div className="space-y-3">
+        <p className="text-sm text-slate-600">
           Columns: title, sku, description, price, quantity, imageUrl,
           assignUserId (optional for admins), plus owner and created date for
           reference.
         </p>
-        <div className='flex flex-col gap-2'>
+        <div className="flex flex-col gap-2">
           {EXPORT_FORMATS.map(({ format, label }) => (
             <Button
               key={format}
-              variant='outline'
+              variant="outline"
               icon={Download}
               isLoading={isLoading && activeFormat === format}
               disabled={isLoading}
@@ -117,9 +117,9 @@ function ProductFormModal({
   product,
   onSubmit,
   isLoading,
-  description = 'Global master catalog item',
+  description = "Global master catalog item",
   showQuantity = false,
-  quantityHint = '',
+  quantityHint = "",
   quantityReadOnly = false,
   showSellerSelect = false,
   sellerOptions = [],
@@ -140,12 +140,12 @@ function ProductFormModal({
   } = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: '',
-      sku: '',
-      description: '',
+      title: "",
+      sku: "",
+      description: "",
       price: 0,
       quantity: 0,
-      assignUserId: '',
+      assignUserId: "",
     },
   });
 
@@ -158,20 +158,20 @@ function ProductFormModal({
     reset(
       product
         ? {
-            title: product.title || '',
-            sku: product.sku || '',
-            description: product.description || '',
+            title: product.title || "",
+            sku: product.sku || "",
+            description: product.description || "",
             price: product.price ?? 0,
             quantity: product.quantity ?? 0,
-            assignUserId: '',
+            assignUserId: "",
           }
         : {
-            title: '',
-            sku: '',
-            description: '',
+            title: "",
+            sku: "",
+            description: "",
             price: 0,
             quantity: 0,
-            assignUserId: '',
+            assignUserId: "",
           },
     );
     setImageFile(null);
@@ -194,24 +194,24 @@ function ProductFormModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={product ? 'Edit product' : 'Create product'}
+      title={product ? "Edit product" : "Create product"}
       description={description}
-      size='lg'
+      size="lg"
       footer={
         <>
-          <Button variant='outline' onClick={onClose} disabled={isLoading}>
+          <Button variant="outline" onClick={onClose} disabled={isLoading}>
             Cancel
           </Button>
           <Button onClick={submit} isLoading={isLoading}>
-            {product ? 'Save changes' : 'Create product'}
+            {product ? "Save changes" : "Create product"}
           </Button>
         </>
       }
     >
-      <form className='grid gap-4 sm:grid-cols-2' onSubmit={submit}>
+      <form className="grid gap-4 sm:grid-cols-2" onSubmit={submit}>
         <ImageUploadField
-          className='sm:col-span-2'
-          label='Product image'
+          className="sm:col-span-2"
+          label="Product image"
           valueFile={imageFile}
           existingUrl={existingImageUrl}
           disabled={isLoading}
@@ -227,60 +227,60 @@ function ProductFormModal({
           }}
         />
         <Input
-          id='title'
-          label='Title'
-          containerClassName='sm:col-span-2'
+          id="title"
+          label="Title"
+          containerClassName="sm:col-span-2"
           error={errors.title?.message}
           disabled={isLoading}
-          {...register('title')}
+          {...register("title")}
         />
         <Input
-          id='sku'
-          label='SKU'
+          id="sku"
+          label="SKU"
           error={errors.sku?.message}
           disabled={isLoading}
-          {...register('sku')}
+          {...register("sku")}
         />
         <Input
-          id='price'
-          label='Price'
-          type='number'
-          step='0.01'
+          id="price"
+          label="Price"
+          type="number"
+          step="0.01"
           error={errors.price?.message}
           disabled={isLoading}
-          {...register('price')}
+          {...register("price")}
         />
         {showQuantity ? (
           <Input
-            id='quantity'
-            label='Qty'
-            type='number'
+            id="quantity"
+            label="Qty"
+            type="number"
             min={0}
             step={1}
             hint={quantityHint || undefined}
             error={errors.quantity?.message}
             disabled={isLoading || quantityReadOnly}
-            {...register('quantity')}
+            {...register("quantity")}
           />
         ) : null}
         {showSellerSelect && isCreate ? (
           <Select
-            id='assignUserId'
-            label='Assign to seller'
-            placeholder='Select seller'
+            id="assignUserId"
+            label="Assign to seller"
+            placeholder="Select seller"
             options={sellerOptions}
             error={errors.assignUserId?.message}
             disabled={isLoading}
-            {...register('assignUserId')}
+            {...register("assignUserId")}
           />
         ) : null}
         <Textarea
-          id='description'
-          label='Description'
-          containerClassName='sm:col-span-2'
+          id="description"
+          label="Description"
+          containerClassName="sm:col-span-2"
           error={errors.description?.message}
           disabled={isLoading}
-          {...register('description')}
+          {...register("description")}
         />
       </form>
     </Modal>
@@ -309,7 +309,7 @@ function SellerSellModal({ isOpen, onClose, product, onSubmit, isLoading }) {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={product?.title || 'Record sale'}
+      title={product?.title || "Record sale"}
       status={
         product ? (
           <AvailabilityStatus remainingStock={availableQty} />
@@ -317,7 +317,7 @@ function SellerSellModal({ isOpen, onClose, product, onSubmit, isLoading }) {
       }
       footer={
         <>
-          <Button variant='outline' onClick={onClose} disabled={isLoading}>
+          <Button variant="outline" onClick={onClose} disabled={isLoading}>
             Cancel
           </Button>
           <Button
@@ -330,19 +330,19 @@ function SellerSellModal({ isOpen, onClose, product, onSubmit, isLoading }) {
         </>
       }
     >
-      <form className='space-y-4' onSubmit={handleSubmit(onSubmit)}>
+      <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
         <Input
-          id='soldQuantity'
-          label='Units sold'
-          type='number'
+          id="soldQuantity"
+          label="Units sold"
+          type="number"
           hint={
             isOutOfStock
-              ? 'No stock available to sell'
-              : 'Your stock will decrease by this amount'
+              ? "No stock available to sell"
+              : "Your stock will decrease by this amount"
           }
           error={errors.quantity?.message}
           disabled={isOutOfStock || isLoading}
-          {...register('quantity')}
+          {...register("quantity")}
         />
       </form>
     </Modal>
@@ -396,7 +396,7 @@ export default function ProductsPage() {
 
   useEffect(() => {
     if (!isAdmin) return;
-    updateUserFilters({ page: 1, limit: 100, search: '', role: 'SELLER' });
+    updateUserFilters({ page: 1, limit: 100, search: "", role: "SELLER" });
   }, [isAdmin, updateUserFilters]);
 
   useEffect(() => {
@@ -407,7 +407,7 @@ export default function ProductsPage() {
   const sellerOptions = useMemo(
     () =>
       users
-        .filter((user) => user.role === 'SELLER')
+        .filter((user) => user.role === "SELLER")
         .map((user) => ({
           value: user.id,
           label: user.branch?.name
@@ -420,71 +420,71 @@ export default function ProductsPage() {
   const columns = useMemo(
     () => [
       {
-        key: 'image',
-        header: '',
-        className: 'w-14',
+        key: "image",
+        header: "",
+        className: "w-14",
         render: (row) => <ProductImageCell imageUrl={row.imageUrl} />,
       },
       {
-        key: 'title',
-        header: 'Product',
-        className: 'min-w-[10rem] max-w-[16rem] !whitespace-normal',
+        key: "title",
+        header: "Product",
+        className: "min-w-[10rem] max-w-[16rem] !whitespace-normal",
         render: (row) => (
-          <div className='min-w-0'>
+          <div className="min-w-0">
             <p
-              className='truncate font-medium text-slate-900'
+              className="truncate font-medium text-slate-900"
               title={row.title}
             >
               {row.title}
             </p>
             <p
-              className='truncate text-xs text-slate-500'
-              title={row.sku || ''}
+              className="truncate text-xs text-slate-500"
+              title={row.sku || ""}
             >
-              SKU: {row.sku || '—'}
+              SKU: {row.sku || "—"}
             </p>
           </div>
         ),
       },
       {
-        key: 'price',
-        header: 'Price',
+        key: "price",
+        header: "Price",
         render: (row) => formatCurrency(row.price),
       },
       ...(isAdmin
         ? [
             {
-              key: 'owner',
-              header: 'Product Owner',
-              className: 'min-w-[8rem] max-w-[12rem] !whitespace-normal',
+              key: "owner",
+              header: "Product Owner",
+              className: "min-w-[8rem] max-w-[12rem] !whitespace-normal",
               render: (row) => <ProductOwnerCell product={row} />,
             },
             {
-              key: 'description',
-              header: 'Description',
-              className: 'min-w-[10rem] max-w-[16rem] whitespace-normal',
+              key: "description",
+              header: "Description",
+              className: "min-w-[10rem] max-w-[16rem] whitespace-normal",
               render: (row) => (
-                <span className='block truncate text-slate-500'>
-                  {row.description || '—'}
+                <span className="block truncate text-slate-500">
+                  {row.description || "—"}
                 </span>
               ),
             },
             {
-              key: 'createdAt',
-              header: 'Created',
+              key: "createdAt",
+              header: "Created",
               render: (row) => formatDate(row.createdAt),
             },
           ]
         : isCustomer
           ? [
               {
-                key: 'quantity',
-                header: 'Available',
+                key: "quantity",
+                header: "Available",
                 render: (row) => formatNumber(row.availableQuantity ?? 0),
               },
               {
-                key: 'status',
-                header: 'Status',
+                key: "status",
+                header: "Status",
                 render: (row) => (
                   <StockStatusChip
                     remainingStock={row.availableQuantity ?? 0}
@@ -494,36 +494,36 @@ export default function ProductsPage() {
             ]
           : [
               {
-                key: 'quantity',
-                header: 'Qty',
+                key: "quantity",
+                header: "Qty",
                 render: (row) => formatNumber(row.quantity ?? 0),
               },
               {
-                key: 'status',
-                header: 'Status',
+                key: "status",
+                header: "Status",
                 render: (row) => (
                   <StockStatusChip remainingStock={row.quantity ?? 0} />
                 ),
               },
               {
-                key: 'owner',
-                header: 'Owner',
+                key: "owner",
+                header: "Owner",
                 render: (row) => (
                   <ProductOwnerBadge product={row} currentUserId={user?.id} />
                 ),
               },
             ]),
       {
-        key: 'actions',
-        header: 'Actions',
-        sticky: 'right',
+        key: "actions",
+        header: "Actions",
+        sticky: "right",
         render: (row) => (
-          <div className='flex items-center gap-0.5 sm:gap-1'>
+          <div className="flex items-center gap-0.5 sm:gap-1">
             <Button
-              variant='ghost'
-              size='sm'
+              variant="ghost"
+              size="sm"
               icon={Eye}
-              title='View'
+              title="View"
               onClick={() => {
                 setViewing(row);
                 setViewOpen(true);
@@ -532,38 +532,38 @@ export default function ProductsPage() {
             {isAdmin ? (
               <>
                 <Button
-                  variant='ghost'
-                  size='sm'
+                  variant="ghost"
+                  size="sm"
                   icon={Pencil}
-                  title='Edit'
+                  title="Edit"
                   onClick={() => {
                     setEditing(row);
                     setFormOpen(true);
                   }}
                 />
                 <Button
-                  variant='ghost'
-                  size='sm'
+                  variant="ghost"
+                  size="sm"
                   icon={Trash2}
-                  title='Delete'
+                  title="Delete"
                   onClick={() => setDeleting(row)}
                 />
               </>
             ) : isCustomer ? null : (
               <>
                 <Button
-                  variant='ghost'
-                  size='sm'
+                  variant="ghost"
+                  size="sm"
                   icon={ShoppingCart}
-                  title='Record sale'
+                  title="Record sale"
                   onClick={() => setSellTarget(row)}
                 />
                 {isOwnedByUser(row, user?.id) ? (
                   <Button
-                    variant='ghost'
-                    size='sm'
+                    variant="ghost"
+                    size="sm"
                     icon={Pencil}
-                    title='Edit product'
+                    title="Edit product"
                     onClick={() => {
                       setEditing(row);
                       setFormOpen(true);
@@ -607,14 +607,14 @@ export default function ProductsPage() {
     : false;
   const viewingIsOutOfStock = viewingAvailableQuantity === 0;
   const viewingAddDisabled = viewingIsInCart || viewingIsOutOfStock;
-  let viewingAddLabel = 'Add to cart';
-  if (viewingIsOutOfStock) viewingAddLabel = 'Out of Stock';
-  else if (viewingIsInCart) viewingAddLabel = 'Added to Cart';
+  let viewingAddLabel = "Add to cart";
+  if (viewingIsOutOfStock) viewingAddLabel = "Out of Stock";
+  else if (viewingIsInCart) viewingAddLabel = "Added to Cart";
 
-  if (status === 'failed' && !items.length) {
+  if (status === "failed" && !items.length) {
     return (
       <ErrorState
-        title='Could not load products'
+        title="Could not load products"
         description={error}
         onRetry={loadProducts}
       />
@@ -624,19 +624,19 @@ export default function ProductsPage() {
   return (
     <div>
       <PageHeader
-        title='Products'
+        title="Products"
         description={
           isAdmin
-            ? 'Master catalog used when assigning stock to sellers'
+            ? "Master catalog used when assigning stock to sellers"
             : isCustomer
-              ? 'Browse available products, quantity, and price'
-              : 'Your assigned products — create and edit your own, record sales on any assignment'
+              ? "Browse available products, quantity, and price"
+              : "Your assigned products — create and edit your own, record sales on any assignment"
         }
         actions={
           isAdmin || isSeller ? (
             <>
               <Button
-                variant='outline'
+                variant="outline"
                 icon={Download}
                 onClick={() => setDownloadOpen(true)}
               >
@@ -656,22 +656,22 @@ export default function ProductsPage() {
         }
       />
 
-      <div className='mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
-        <div className='max-w-sm flex-1'>
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="max-w-sm flex-1">
           <SearchBar
             value={filters.search}
-            placeholder='Search by title or SKU…'
+            placeholder="Search by title or SKU…"
             onSearch={(search) => updateFilters({ search, page: 1 })}
           />
         </div>
         <Select
-          id='products-per-page'
-          label='Show per page'
+          id="products-per-page"
+          label="Show per page"
           inlineLabel
           value={String(filters.limit)}
           options={PRODUCTS_PAGE_SIZE_OPTIONS}
-          containerClassName='w-full sm:w-auto'
-          className='w-20'
+          containerClassName="w-full sm:w-auto"
+          className="w-20"
           onChange={(event) =>
             updateFilters({ limit: Number(event.target.value), page: 1 })
           }
@@ -679,7 +679,7 @@ export default function ProductsPage() {
       </div>
 
       {isCustomer ? (
-        <div className='space-y-4'>
+        <div className="space-y-4">
           <ProductGrid
             products={items}
             isLoading={isLoading}
@@ -688,11 +688,11 @@ export default function ProductsPage() {
               setViewOpen(true);
             }}
             onAddToCart={(product) => addProduct(product)}
-            emptyTitle='No products found'
+            emptyTitle="No products found"
             emptyDescription={
               filters.search
-                ? 'No products match your search. Try a different title or SKU.'
-                : 'No products are available in the catalog yet.'
+                ? "No products match your search. Try a different title or SKU."
+                : "No products are available in the catalog yet."
             }
           />
           <Pagination
@@ -704,18 +704,18 @@ export default function ProductsPage() {
           />
         </div>
       ) : (
-        <div className='rounded-xl border border-slate-200 bg-white shadow-sm'>
+        <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
           <Table
             columns={columns}
             data={items}
             keyExtractor={(row) => row.id}
             isLoading={isLoading}
-            minWidthClassName={isAdmin ? 'min-w-[48rem]' : 'min-w-[40rem]'}
-            emptyTitle='No products yet'
+            minWidthClassName={isAdmin ? "min-w-[48rem]" : "min-w-[40rem]"}
+            emptyTitle="No products yet"
             emptyDescription={
               isAdmin
-                ? 'Create your first catalog product.'
-                : 'No products have been assigned to you yet. Ask an admin.'
+                ? "Create your first catalog product."
+                : "No products have been assigned to you yet. Ask an admin."
             }
           />
           <Pagination
@@ -729,7 +729,7 @@ export default function ProductsPage() {
       )}
 
       <ProductFormModal
-        key={editing?.id ?? 'create'}
+        key={editing?.id ?? "create"}
         isOpen={formOpen}
         onClose={() => {
           setFormOpen(false);
@@ -740,8 +740,8 @@ export default function ProductsPage() {
         isLoading={isMutating}
         description={
           isAdmin
-            ? 'Global master catalog item'
-            : 'Your product — you can edit details and upload an image'
+            ? "Global master catalog item"
+            : "Your product — you can edit details and upload an image"
         }
         showQuantity={isAdmin || isSeller}
         showSellerSelect={isAdmin && !editing}
@@ -750,14 +750,14 @@ export default function ProductsPage() {
           editing
             ? isAdmin
               ? (editing._count?.assignedUsers ?? 0) > 1
-                ? 'Total stock across sellers — adjust per seller via Inventory'
+                ? "Total stock across sellers — adjust per seller via Inventory"
                 : (editing._count?.assignedUsers ?? 0) === 0
-                  ? 'Assign this product to a seller via Inventory before setting stock'
-                  : 'Stock for the assigned seller'
-              : 'Your assigned stock quantity'
+                  ? "Assign this product to a seller via Inventory before setting stock"
+                  : "Stock for the assigned seller"
+              : "Your assigned stock quantity"
             : isAdmin
-              ? 'Set initial stock and choose which seller receives it'
-              : 'Initial stock for your inventory'
+              ? "Set initial stock and choose which seller receives it"
+              : "Initial stock for your inventory"
         }
         quantityReadOnly={
           isAdmin && editing && (editing._count?.assignedUsers ?? 0) > 1
@@ -770,7 +770,7 @@ export default function ProductsPage() {
           setImagePreviewOpen(false);
           setViewOpen(false);
         }}
-        title='Product Details'
+        title="Product Details"
         status={
           !isAdmin && viewing ? (
             <AvailabilityStatus
@@ -782,7 +782,7 @@ export default function ProductsPage() {
             />
           ) : undefined
         }
-        size='xl'
+        size="xl"
         footer={
           isCustomer && viewing ? (
             <Button
@@ -800,38 +800,38 @@ export default function ProductsPage() {
         }
       >
         {viewing && (
-          <div className='space-y-6'>
+          <div className="space-y-6">
             {/* Product Image & Title Section */}
-            <div className='rounded-lg border border-slate-200 bg-white p-4'>
+            <div className="rounded-lg border border-slate-200 bg-white p-4">
               {resolveMediaUrl(viewing.imageUrl) && (
                 <button
-                  type='button'
+                  type="button"
                   onClick={() => setImagePreviewOpen(true)}
-                  className='group relative mb-4 block w-full overflow-hidden rounded-lg bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2'
+                  className="group relative mb-4 block w-full overflow-hidden rounded-lg bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
                   aria-label={`View larger image of ${viewing.title}`}
                 >
                   <img
                     src={resolveMediaUrl(viewing.imageUrl)}
                     alt={viewing.title}
-                    className='h-48 w-full object-cover transition-transform group-hover:scale-105 sm:h-56'
-                    loading='lazy'
+                    className="h-48 w-full object-cover transition-transform group-hover:scale-105 sm:h-56"
+                    loading="lazy"
                   />
-                  <span className='pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/20'>
-                    <span className='flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1.5 text-xs font-medium text-white opacity-0 transition group-hover:opacity-100'>
-                      <ZoomIn className='size-3.5' />
+                  <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/20">
+                    <span className="flex items-center gap-1.5 rounded-full bg-black/60 px-3 py-1.5 text-xs font-medium text-white opacity-0 transition group-hover:opacity-100">
+                      <ZoomIn className="size-3.5" />
                       Click to enlarge
                     </span>
                   </span>
                 </button>
               )}
 
-              <div className='space-y-1'>
-                <h3 className='text-xl font-semibold text-slate-900'>
+              <div className="space-y-1">
+                <h3 className="text-xl font-semibold text-slate-900">
                   {viewing.title}
                 </h3>
                 {viewing.sku && (
-                  <p className='text-sm text-slate-500'>
-                    <span className='font-mono text-slate-600'>
+                  <p className="text-sm text-slate-500">
+                    <span className="font-mono text-slate-600">
                       {viewing.sku}
                     </span>
                   </p>
@@ -840,18 +840,18 @@ export default function ProductsPage() {
             </div>
 
             {/* Key Information Grid */}
-            <div className='grid gap-4 sm:grid-cols-2'>
+            <div className="grid gap-4 sm:grid-cols-2">
               {/* Price Card */}
-              <div className='rounded-lg border border-slate-200 bg-white p-4 transition hover:border-slate-300'>
-                <div className='flex items-center gap-2'>
-                  <div className='rounded-lg bg-emerald-50 p-2'>
-                    <DollarSign className='h-4 w-4 text-emerald-600' />
+              <div className="rounded-lg border border-slate-200 bg-white p-4 transition hover:border-slate-300">
+                <div className="flex items-center gap-2">
+                  <div className="rounded-lg bg-emerald-50 p-2">
+                    <DollarSign className="h-4 w-4 text-emerald-600" />
                   </div>
                   <div>
-                    <p className='text-xs font-medium uppercase tracking-wider text-slate-500'>
+                    <p className="text-xs font-medium uppercase tracking-wider text-slate-500">
                       Price
                     </p>
-                    <p className='text-lg font-bold text-slate-900'>
+                    <p className="text-lg font-bold text-slate-900">
                       {formatCurrency(viewing.price)}
                     </p>
                   </div>
@@ -860,19 +860,19 @@ export default function ProductsPage() {
 
               {/* Stock Card */}
               {!isAdmin && (
-                <div className='rounded-lg border border-slate-200 bg-white p-4 transition hover:border-slate-300'>
-                  <div className='flex items-center gap-2'>
+                <div className="rounded-lg border border-slate-200 bg-white p-4 transition hover:border-slate-300">
+                  <div className="flex items-center gap-2">
                     <div
                       className={`rounded-lg p-2 ${
                         (isCustomer
                           ? viewing.availableQuantity
                           : viewing.quantity) > 10
-                          ? 'bg-emerald-50'
+                          ? "bg-emerald-50"
                           : (isCustomer
                                 ? viewing.availableQuantity
                                 : viewing.quantity) > 0
-                            ? 'bg-amber-50'
-                            : 'bg-red-50'
+                            ? "bg-amber-50"
+                            : "bg-red-50"
                       }`}
                     >
                       <Package
@@ -880,32 +880,32 @@ export default function ProductsPage() {
                           (isCustomer
                             ? viewing.availableQuantity
                             : viewing.quantity) > 10
-                            ? 'text-emerald-600'
+                            ? "text-emerald-600"
                             : (isCustomer
                                   ? viewing.availableQuantity
                                   : viewing.quantity) > 0
-                              ? 'text-amber-600'
-                              : 'text-red-600'
+                              ? "text-amber-600"
+                              : "text-red-600"
                         }`}
                       />
                     </div>
                     <div>
-                      <p className='text-xs font-medium uppercase tracking-wider text-slate-500'>
+                      <p className="text-xs font-medium uppercase tracking-wider text-slate-500">
                         {isCustomer
-                          ? 'Available Quantity'
-                          : 'Assigned Quantity'}
+                          ? "Available Quantity"
+                          : "Assigned Quantity"}
                       </p>
                       <p
                         className={`text-lg font-bold ${
                           (isCustomer
                             ? viewing.availableQuantity
                             : viewing.quantity) > 10
-                            ? 'text-emerald-600'
+                            ? "text-emerald-600"
                             : (isCustomer
                                   ? viewing.availableQuantity
                                   : viewing.quantity) > 0
-                              ? 'text-amber-600'
-                              : 'text-red-600'
+                              ? "text-amber-600"
+                              : "text-red-600"
                         }`}
                       >
                         {formatNumber(
@@ -913,7 +913,7 @@ export default function ProductsPage() {
                             ? viewing.availableQuantity
                             : viewing.quantity) ?? 0,
                         )}
-                        <span className='ml-1 text-sm font-normal text-slate-500'>
+                        <span className="ml-1 text-sm font-normal text-slate-500">
                           units
                         </span>
                       </p>
@@ -926,16 +926,16 @@ export default function ProductsPage() {
               {!isCustomer && (
                 <>
                   {viewing.category && (
-                    <div className='rounded-lg border border-slate-200 bg-white p-4 transition hover:border-slate-300'>
-                      <div className='flex items-center gap-2'>
-                        <div className='rounded-lg bg-blue-50 p-2'>
-                          <Tag className='h-4 w-4 text-blue-600' />
+                    <div className="rounded-lg border border-slate-200 bg-white p-4 transition hover:border-slate-300">
+                      <div className="flex items-center gap-2">
+                        <div className="rounded-lg bg-blue-50 p-2">
+                          <Tag className="h-4 w-4 text-blue-600" />
                         </div>
                         <div>
-                          <p className='text-xs font-medium uppercase tracking-wider text-slate-500'>
+                          <p className="text-xs font-medium uppercase tracking-wider text-slate-500">
                             Category
                           </p>
-                          <p className='font-medium text-slate-900'>
+                          <p className="font-medium text-slate-900">
                             {viewing.category}
                           </p>
                         </div>
@@ -944,17 +944,17 @@ export default function ProductsPage() {
                   )}
 
                   {viewing.weight && (
-                    <div className='rounded-lg border border-slate-200 bg-white p-4 transition hover:border-slate-300'>
-                      <div className='flex items-center gap-2'>
-                        <div className='rounded-lg bg-purple-50 p-2'>
-                          <Weight className='h-4 w-4 text-purple-600' />
+                    <div className="rounded-lg border border-slate-200 bg-white p-4 transition hover:border-slate-300">
+                      <div className="flex items-center gap-2">
+                        <div className="rounded-lg bg-purple-50 p-2">
+                          <Weight className="h-4 w-4 text-purple-600" />
                         </div>
                         <div>
-                          <p className='text-xs font-medium uppercase tracking-wider text-slate-500'>
+                          <p className="text-xs font-medium uppercase tracking-wider text-slate-500">
                             Weight
                           </p>
-                          <p className='font-medium text-slate-900'>
-                            {viewing.weight} {viewing.weightUnit || 'kg'}
+                          <p className="font-medium text-slate-900">
+                            {viewing.weight} {viewing.weightUnit || "kg"}
                           </p>
                         </div>
                       </div>
@@ -966,14 +966,14 @@ export default function ProductsPage() {
 
             {/* Description Section */}
             {!isCustomer && viewing.description && (
-              <div className='rounded-lg border border-slate-200 bg-white p-4'>
-                <div className='flex items-center gap-2'>
-                  <FileText className='h-4 w-4 text-slate-400' />
-                  <h4 className='text-sm font-medium text-slate-700'>
+              <div className="rounded-lg border border-slate-200 bg-white p-4">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-slate-400" />
+                  <h4 className="text-sm font-medium text-slate-700">
                     Description
                   </h4>
                 </div>
-                <div className='mt-2 text-sm leading-relaxed text-slate-600'>
+                <div className="mt-2 text-sm leading-relaxed text-slate-600">
                   {viewing.description}
                 </div>
               </div>
@@ -984,12 +984,12 @@ export default function ProductsPage() {
               (isCustomer
                 ? viewing.availableQuantity > 0
                 : viewing.quantity > 0) && (
-                <div className='flex flex-col gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-4 sm:flex-row sm:items-center sm:justify-between'>
+                <div className="flex flex-col gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className='text-sm font-medium text-emerald-800'>
+                    <p className="text-sm font-medium text-emerald-800">
                       ✓ In Stock
                     </p>
-                    <p className='text-xs text-emerald-600'>
+                    <p className="text-xs text-emerald-600">
                       {isCustomer
                         ? `${viewing.availableQuantity} units available to request`
                         : `You have ${viewing.quantity} units assigned`}
@@ -1003,8 +1003,8 @@ export default function ProductsPage() {
               (isCustomer ? viewing.availableQuantity : viewing.quantity) > 0 &&
               (isCustomer ? viewing.availableQuantity : viewing.quantity) <=
                 5 && (
-                <div className='flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800'>
-                  <AlertCircle className='mt-0.5 h-4 w-4 flex-shrink-0' />
+                <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                  <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
                   <span>
                     {isCustomer
                       ? `Only ${viewing.availableQuantity} units remaining in stock`
@@ -1017,12 +1017,12 @@ export default function ProductsPage() {
             {!isAdmin &&
               (isCustomer ? viewing.availableQuantity : viewing.quantity) ===
                 0 && (
-                <div className='flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800'>
-                  <AlertCircle className='mt-0.5 h-4 w-4 flex-shrink-0' />
+                <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+                  <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
                   <span>
                     {isCustomer
-                      ? 'This product is currently out of stock'
-                      : 'No units assigned to you'}
+                      ? "This product is currently out of stock"
+                      : "No units assigned to you"}
                   </span>
                 </div>
               )}
@@ -1034,7 +1034,7 @@ export default function ProductsPage() {
         isOpen={imagePreviewOpen}
         onClose={() => setImagePreviewOpen(false)}
         src={resolveMediaUrl(viewing?.imageUrl)}
-        alt={viewing?.title || 'Product image'}
+        alt={viewing?.title || "Product image"}
       />
 
       <SellerSellModal
@@ -1058,9 +1058,9 @@ export default function ProductsPage() {
       <ConfirmDialog
         isOpen={Boolean(deleting)}
         onClose={() => setDeleting(null)}
-        title='Delete product?'
+        title="Delete product?"
         description={`This will remove “${deleting?.title}” from the catalog.`}
-        confirmLabel='Delete'
+        confirmLabel="Delete"
         isLoading={isMutating}
         onConfirm={async () => {
           const result = await deleteProduct(deleting.id);
