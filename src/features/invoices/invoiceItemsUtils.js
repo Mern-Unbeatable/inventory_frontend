@@ -84,5 +84,8 @@ export const clampQuantity = (rawValue, maxStock) => {
 export const canAddInvoiceItem = (allOptions, watchedItems) => {
   const inStockCount = (allOptions || []).length;
   if (inStockCount === 0) return false;
-  return (watchedItems || []).length < inStockCount;
+  const selectedCount = (watchedItems || []).filter(
+    (item) => item?.productId,
+  ).length;
+  return selectedCount < inStockCount;
 };

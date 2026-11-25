@@ -71,7 +71,7 @@ function EditInvoiceModal({ isOpen, onClose, invoice, onSubmit, isLoading }) {
         options,
       );
     },
-    defaultValues: { notes: '', items: [{ productId: '', quantity: 1 }] },
+    defaultValues: { notes: '', items: [] },
   });
 
   const watchedItems = watch('items');
@@ -85,7 +85,7 @@ function EditInvoiceModal({ isOpen, onClose, invoice, onSubmit, isLoading }) {
               productId: item.productId,
               quantity: item.quantity,
             }))
-          : [{ productId: '', quantity: 1 }],
+          : [],
       });
     }
   }, [isOpen, invoice, reset]);
@@ -137,7 +137,7 @@ function EditInvoiceModal({ isOpen, onClose, invoice, onSubmit, isLoading }) {
       blurBackdrop={!pickerOpen}
       title='Edit draft invoice'
       description='Only draft invoices can be edited — quantities cannot exceed seller stock'
-      size='2xl'
+      size='xl'
       footer={
         <>
           <Button

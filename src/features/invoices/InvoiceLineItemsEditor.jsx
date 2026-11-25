@@ -6,21 +6,21 @@ import { ProductImageCell } from "@/components/products/ProductImageCell.jsx";
 import { ProductPickerModal } from "@/components/products/ProductPickerModal.jsx";
 import { formatCurrency } from "@/utils/format/currency.js";
 import {
-  canAddInvoiceItem,
   clampQuantity,
   getProductStock,
-  getRowProductOptions,
   mapOptionsToPickerProducts,
 } from "./invoiceItemsUtils.js";
 
 /**
  * Inventory-aware invoice line-item editor for create/edit modals.
  * Expects RHF form with `items: [{ productId, quantity }]`.
+ *
+ * "Add item" / "Change" open the same multi-select picker with current
+ * selections checked and pinned to the top of the list.
  */
 export function InvoiceLineItemsEditor({
   control,
   register,
-  setValue,
   watch,
   errors,
   productOptions = [],
@@ -29,59 +29,58 @@ export function InvoiceLineItemsEditor({
   emptyStockMessage = "No in-stock products assigned to this seller.",
   onPickerOpenChange,
 }) {
-  const { fields, append, remove } = useFieldArray({ control, name: "items" });
+  const { fields, remove, replace } = useFieldArray({
+    control,
+    name: "items",
+  });
   const watchedItems = watch("items") || [];
-  const [pickerIndex, setPickerIndex] = useState(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const productMap = useMemo(
     () => new Map(productOptions.map((p) => [p.value, p])),
     [productOptions],
   );
 
-  const addDisabled =
-    disabled ||
-    stockLoading ||
-    !canAddInvoiceItem(productOptions, watchedItems);
+  const selectedProductIds = useMemo(
+    () => (watchedItems || []).map((item) => item?.productId).filter(Boolean),
+    [watchedItems],
+  );
+
+  const openDisabled = disabled || stockLoading || !productOptions.length;
 
   useEffect(() => {
-    if (disabled || stockLoading) setPickerIndex(null);
+    if (disabled || stockLoading) setPickerOpen(false);
   }, [disabled, stockLoading]);
 
   useEffect(() => {
-    onPickerOpenChange?.(pickerIndex != null);
-  }, [pickerIndex, onPickerOpenChange]);
+    onPickerOpenChange?.(pickerOpen);
+  }, [pickerOpen, onPickerOpenChange]);
 
-  useEffect(() => {
-    if (pickerIndex == null) return;
-    if (pickerIndex >= fields.length) setPickerIndex(null);
-  }, [pickerIndex, fields.length]);
+  const pickerProducts = useMemo(() => {
+    const selected = new Set(selectedProductIds);
+    return mapOptionsToPickerProducts(
+      (productOptions || []).filter(
+        (option) => option.quantity > 0 || selected.has(option.value),
+      ),
+    );
+  }, [productOptions, selectedProductIds]);
 
-  const pickerRowOptions =
-    pickerIndex == null
-      ? []
-      : getRowProductOptions(productOptions, watchedItems, pickerIndex);
+  const syncSelection = (products) => {
+    const previousById = new Map(
+      (watchedItems || [])
+        .filter((item) => item?.productId)
+        .map((item) => [item.productId, item]),
+    );
 
-  const pickerProducts = useMemo(
-    () => mapOptionsToPickerProducts(pickerRowOptions),
-    [pickerRowOptions],
-  );
-
-  const handlePickProduct = (product) => {
-    if (pickerIndex == null) return;
-    const index = pickerIndex;
-    const stock = getProductStock(productOptions, product.id);
-    const currentQty = Number(watchedItems?.[index]?.quantity) || 1;
-    const nextQty = clampQuantity(currentQty, stock) || 1;
-
-    setValue(`items.${index}.productId`, product.id, {
-      shouldValidate: true,
-      shouldDirty: true,
-    });
-    setValue(`items.${index}.quantity`, nextQty, {
-      shouldValidate: true,
-      shouldDirty: true,
-    });
-    setPickerIndex(null);
+    replace(
+      (products || [])
+        .filter((product) => product?.id)
+        .map((product) => ({
+          productId: product.id,
+          quantity: Number(previousById.get(product.id)?.quantity) || 1,
+        })),
+    );
+    setPickerOpen(false);
   };
 
   return (
@@ -94,13 +93,8 @@ export function InvoiceLineItemsEditor({
           size="sm"
           icon={Plus}
           className="border-dashed hover:border-solid"
-          disabled={addDisabled}
-          title={
-            addDisabled && productOptions.length > 0
-              ? "All available products have already been added."
-              : undefined
-          }
-          onClick={() => append({ productId: "", quantity: 1 })}
+          disabled={openDisabled}
+          onClick={() => setPickerOpen(true)}
         >
           Add item
         </Button>
@@ -116,15 +110,11 @@ export function InvoiceLineItemsEditor({
         </p>
       ) : null}
 
-      {addDisabled && productOptions.length > 0 && !stockLoading ? (
-        <p className="mb-3 text-xs text-slate-500">
-          All available products have already been added.
-        </p>
-      ) : null}
-
       <div className="space-y-3">
         {fields.map((field, index) => {
           const selectedId = watchedItems?.[index]?.productId;
+          if (!selectedId) return null;
+
           const selected = productMap.get(selectedId);
           const available = getProductStock(productOptions, selectedId);
           const productError = errors.items?.[index]?.productId?.message;
@@ -145,7 +135,7 @@ export function InvoiceLineItemsEditor({
             >
               <input type="hidden" {...register(`items.${index}.productId`)} />
 
-              <div className="grid grid-cols-[minmax(0,1fr)_auto_4rem_2.25rem] items-center gap-x-3 gap-y-1">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto_4rem_2.5rem] items-center gap-x-3 gap-y-1">
                 <div className="flex min-w-0 items-center gap-3">
                   {selected ? (
                     <>
@@ -162,7 +152,7 @@ export function InvoiceLineItemsEditor({
                       </div>
                     </>
                   ) : (
-                    <p className="text-sm text-slate-500">No product selected</p>
+                    <p className="text-sm text-slate-500">Unknown product</p>
                   )}
                 </div>
 
@@ -171,10 +161,10 @@ export function InvoiceLineItemsEditor({
                   variant="outline"
                   size="sm"
                   className="shrink-0"
-                  disabled={disabled || stockLoading}
-                  onClick={() => setPickerIndex(index)}
+                  disabled={openDisabled}
+                  onClick={() => setPickerOpen(true)}
                 >
-                  {selected ? "Change" : "Choose"}
+                  Change
                 </Button>
 
                 <Controller
@@ -187,7 +177,7 @@ export function InvoiceLineItemsEditor({
                       max={available != null ? available : undefined}
                       step={1}
                       placeholder="Qty"
-                      disabled={disabled || stockLoading || !selectedId}
+                      disabled={disabled || stockLoading}
                       value={qtyField.value ?? ""}
                       onBlur={qtyField.onBlur}
                       onChange={(event) => {
@@ -205,16 +195,16 @@ export function InvoiceLineItemsEditor({
                   )}
                 />
 
-                <Button
+                <button
                   type="button"
-                  variant="ghost"
-                  size="sm"
-                  icon={Trash2}
-                  className="size-9 shrink-0 justify-self-center px-0"
-                  disabled={disabled || fields.length <= 1}
+                  disabled={disabled}
                   onClick={() => remove(index)}
                   title="Remove item"
-                />
+                  aria-label="Remove item"
+                  className="inline-flex size-8 shrink-0 items-center justify-center justify-self-center rounded-lg text-red-600 transition-colors hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <Trash2 className="size-4" strokeWidth={2} />
+                </button>
 
                 {(productError || quantityError) && (
                   <>
@@ -238,6 +228,13 @@ export function InvoiceLineItemsEditor({
         })}
       </div>
 
+      {!selectedProductIds.length ? (
+        <p className="mt-3 rounded-lg border border-dashed border-slate-200 bg-slate-50 px-3 py-6 text-center text-sm text-slate-500">
+          Click <span className="font-medium text-slate-700">Add item</span> to
+          choose products.
+        </p>
+      ) : null}
+
       {errors.items?.message ? (
         <p className="mt-1.5 text-xs text-red-600">{errors.items.message}</p>
       ) : null}
@@ -248,18 +245,16 @@ export function InvoiceLineItemsEditor({
       ) : null}
 
       <ProductPickerModal
-        isOpen={pickerIndex != null}
-        onClose={() => setPickerIndex(null)}
-        onSelect={handlePickProduct}
+        isOpen={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        selectionMode="multiple"
+        onConfirm={syncSelection}
         products={pickerProducts}
-        selectedProductId={
-          pickerIndex != null
-            ? watchedItems?.[pickerIndex]?.productId || null
-            : null
-        }
-        title="Select a product"
-        description="Choose from this seller’s in-stock assigned products."
-        emptyMessage="No in-stock products left to add on this line."
+        initialSelectedIds={selectedProductIds}
+        title="Select products"
+        description="Select or unselect products. Selected items stay at the top."
+        emptyMessage="No products available for this seller."
+        confirmLabel="Update selected"
       />
     </div>
   );

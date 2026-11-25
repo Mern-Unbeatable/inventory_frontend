@@ -70,7 +70,7 @@ function CreateInvoiceModal({
       customerId: '',
       sellerId: '',
       notes: '',
-      items: [{ productId: '', quantity: 1 }],
+      items: [],
     },
   });
 
@@ -83,7 +83,7 @@ function CreateInvoiceModal({
         customerId: '',
         sellerId: '',
         notes: '',
-        items: [{ productId: '', quantity: 1 }],
+        items: [],
       });
       setInventoryItems([]);
       setPickerOpen(false);
