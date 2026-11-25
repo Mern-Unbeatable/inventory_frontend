@@ -40,4 +40,9 @@ export const customersService = {
     const { data } = await customersAPI.createPortalAccount(id, payload);
     return unwrapData(data);
   },
+
+  async updatePortalPassword(id, payload) {
+    const { data } = await customersAPI.updatePortalPassword(id, payload);
+    return unwrapData(data);
+  },
 };

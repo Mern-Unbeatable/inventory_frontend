@@ -12,6 +12,7 @@ import {
   Mail,
   MapPin,
   Phone,
+  KeyRound,
   ShieldCheck,
   User,
   UserPlus,
@@ -26,7 +27,10 @@ import { Input } from '@/components/forms/Input.jsx';
 import { Badge } from '@/components/ui/Badge.jsx';
 import { useAuth } from '@/features/auth/authHooks.js';
 import { useCustomers } from '@/features/customers/customersHooks.js';
-import { portalAccountSchema } from '@/features/customers/customersValidation.js';
+import {
+  portalAccountSchema,
+  portalPasswordSchema,
+} from '@/features/customers/customersValidation.js';
 import { formatCurrency, formatNumber } from '@/utils/format/currency.js';
 import { formatDate } from '@/utils/format/date.js';
 import { getInitials } from '@/utils/auth/auth.utils.js';
@@ -105,6 +109,70 @@ function PortalAccountModal({ isOpen, onClose, onSubmit, isLoading }) {
   );
 }
 
+function PortalPasswordModal({ isOpen, onClose, onSubmit, isLoading }) {
+  const [passwordFieldKey, setPasswordFieldKey] = useState(0);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(portalPasswordSchema),
+    defaultValues: { password: '', confirmPassword: '' },
+  });
+
+  useEffect(() => {
+    if (isOpen) {
+      reset({ password: '', confirmPassword: '' });
+      setPasswordFieldKey((key) => key + 1);
+    }
+  }, [isOpen, reset]);
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title='Edit portal password'
+      description='Set a new login password for this customer portal account'
+      footer={
+        <>
+          <Button variant='outline' onClick={onClose} disabled={isLoading}>
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit(onSubmit)} isLoading={isLoading}>
+            Update password
+          </Button>
+        </>
+      }
+    >
+      <form className='space-y-4' onSubmit={handleSubmit(onSubmit)}>
+        <Input
+          key={`password-${passwordFieldKey}`}
+          id='portal-new-password'
+          label='New password'
+          type='password'
+          showPasswordToggle
+          error={errors.password?.message}
+          disabled={isLoading}
+          autoComplete='new-password'
+          {...register('password')}
+        />
+        <Input
+          key={`confirm-${passwordFieldKey}`}
+          id='portal-confirm-password'
+          label='Confirm password'
+          type='password'
+          showPasswordToggle
+          error={errors.confirmPassword?.message}
+          disabled={isLoading}
+          autoComplete='new-password'
+          {...register('confirmPassword')}
+        />
+      </form>
+    </Modal>
+  );
+}
+
 export default function CustomerDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -122,9 +190,11 @@ export default function CustomerDetailPage() {
     loadCustomerInvoices,
     loadCustomerPurchaseHistory,
     createPortalAccount,
+    updatePortalPassword,
   } = useCustomers();
 
   const [portalOpen, setPortalOpen] = useState(false);
+  const [portalPasswordOpen, setPortalPasswordOpen] = useState(false);
 
   useEffect(() => {
     if (!id) return undefined;
@@ -273,6 +343,14 @@ export default function CustomerDetailPage() {
             <Button icon={UserPlus} onClick={() => setPortalOpen(true)}>
               Create portal account
             </Button>
+          ) : isAdmin && customer.userId ? (
+            <Button
+              variant='outline'
+              icon={KeyRound}
+              onClick={() => setPortalPasswordOpen(true)}
+            >
+              Edit portal password
+            </Button>
           ) : null
         }
       />
@@ -393,6 +471,20 @@ export default function CustomerDetailPage() {
           if (result.success) {
             setPortalOpen(false);
             loadCustomerById(customer.id);
+          }
+        }}
+      />
+
+      <PortalPasswordModal
+        isOpen={portalPasswordOpen}
+        onClose={() => setPortalPasswordOpen(false)}
+        isLoading={isMutating}
+        onSubmit={async (values) => {
+          const result = await updatePortalPassword(customer.id, {
+            password: values.password,
+          });
+          if (result.success) {
+            setPortalPasswordOpen(false);
           }
         }}
       />

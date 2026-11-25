@@ -94,6 +94,17 @@ export const createPortalAccountThunk = createAsyncThunk(
   }
 );
 
+export const updatePortalPasswordThunk = createAsyncThunk(
+  'customers/updatePortalPassword',
+  async ({ id, payload }, { rejectWithValue }) => {
+    try {
+      return await customersService.updatePortalPassword(id, payload);
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
 const initialState = {
   items: [],
   meta: { page: 1, limit: appConfig.paginationDefaultLimit, total: 0, totalPages: 1 },
@@ -227,6 +238,16 @@ const customersSlice = createSlice({
         }
       })
       .addCase(createPortalAccountThunk.rejected, (state) => {
+        state.mutationStatus = 'failed';
+      })
+
+      .addCase(updatePortalPasswordThunk.pending, (state) => {
+        state.mutationStatus = 'loading';
+      })
+      .addCase(updatePortalPasswordThunk.fulfilled, (state) => {
+        state.mutationStatus = 'succeeded';
+      })
+      .addCase(updatePortalPasswordThunk.rejected, (state) => {
         state.mutationStatus = 'failed';
       });
   },

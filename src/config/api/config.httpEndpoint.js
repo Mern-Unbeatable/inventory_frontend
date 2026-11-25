@@ -53,6 +53,7 @@ export const HTTP_ENDPOINTS = {
     INVOICES: (id) => `/customers/${id}/invoices`,
     PURCHASE_HISTORY: (id) => `/customers/${id}/purchase-history`,
     PORTAL_ACCOUNT: (id) => `/customers/${id}/portal-account`,
+    PORTAL_PASSWORD: (id) => `/customers/${id}/portal-account/password`,
   },
   INVOICES: {
     BASE: "/invoices",

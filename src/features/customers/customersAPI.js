@@ -13,4 +13,6 @@ export const customersAPI = {
     apiClient.get(HTTP_ENDPOINTS.CUSTOMERS.PURCHASE_HISTORY(id), { params }),
   createPortalAccount: (id, payload) =>
     apiClient.post(HTTP_ENDPOINTS.CUSTOMERS.PORTAL_ACCOUNT(id), payload),
+  updatePortalPassword: (id, payload) =>
+    apiClient.patch(HTTP_ENDPOINTS.CUSTOMERS.PORTAL_PASSWORD(id), payload),
 };

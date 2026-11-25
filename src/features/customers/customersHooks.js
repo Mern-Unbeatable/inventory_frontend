@@ -5,6 +5,7 @@ import {
   clearCurrentCustomer,
   createCustomerThunk,
   createPortalAccountThunk,
+  updatePortalPasswordThunk,
   deleteCustomerThunk,
   fetchCustomerByIdThunk,
   fetchCustomerInvoicesThunk,
@@ -114,6 +115,19 @@ export const useCustomers = () => {
     [dispatch]
   );
 
+  const updatePortalPassword = useCallback(
+    async (id, payload) => {
+      const result = await dispatch(updatePortalPasswordThunk({ id, payload }));
+      if (updatePortalPasswordThunk.fulfilled.match(result)) {
+        toast.success('Portal password updated');
+        return { success: true };
+      }
+      toast.error(result.payload?.message || 'Failed to update portal password');
+      return { success: false, error: result.payload };
+    },
+    [dispatch]
+  );
+
   return {
     items,
     meta,
@@ -139,5 +153,6 @@ export const useCustomers = () => {
     updateCustomer,
     deleteCustomer,
     createPortalAccount,
+    updatePortalPassword,
   };
 };

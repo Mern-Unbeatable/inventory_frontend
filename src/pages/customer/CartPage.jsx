@@ -83,7 +83,6 @@ export default function CartPage() {
               <thead className='bg-slate-900 text-slate-100'>
                 <tr>
                   <th className='px-4 py-3 font-medium'>Product</th>
-                  <th className='px-4 py-3 font-medium'>SKU</th>
                   <th className='px-4 py-3 font-medium'>Unit price</th>
                   <th className='px-4 py-3 font-medium'>Qty</th>
                   <th className='px-4 py-3 font-medium'>Line total</th>
@@ -106,13 +105,15 @@ export default function CartPage() {
                             <Package className='size-4' />
                           </div>
                         )}
-                        <span className='truncate font-medium text-slate-900'>
-                          {item.title}
-                        </span>
+                        <div className='min-w-0'>
+                          <p className='truncate font-medium text-slate-900'>
+                            {item.title}
+                          </p>
+                          <p className='truncate text-xs text-slate-500'>
+                            SKU: {item.sku || '—'}
+                          </p>
+                        </div>
                       </div>
-                    </td>
-                    <td className='px-4 py-3 text-slate-600'>
-                      {item.sku || '—'}
                     </td>
                     <td className='px-4 py-3'>{formatCurrency(item.price)}</td>
                     <td className='px-4 py-3'>
