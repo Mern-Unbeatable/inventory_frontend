@@ -115,11 +115,13 @@ export default function DashboardPage() {
         description='Live overview across countries, branches, and sellers'
       />
 
-      <div className='grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 sm:gap-4 lg:grid-cols-5 xl:grid-cols-6 mb-6'>
+      <div className='mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 xl:grid-cols-6'>
+        {/* Org */}
         <StatCard
           title='Countries'
           value={formatNumber(totals.countries)}
           icon={Globe2}
+          tone='primary'
         />
         <StatCard
           title='Branches'
@@ -134,60 +136,61 @@ export default function DashboardPage() {
           tone='green'
         />
         <StatCard
+          title='Customers'
+          value={formatNumber(totals.customers)}
+          icon={UsersRound}
+          tone='green'
+        />
+        <StatCard
           title='Products'
           value={formatNumber(totals.products)}
           icon={Package}
-          tone='amber'
+          tone='primary'
         />
         <StatCard
           title='Assignments'
           value={formatNumber(totals.assignments)}
           icon={Warehouse}
+          tone='slate'
         />
+        {/* Stock */}
         <StatCard
-          title='Total stock qty'
+          title='Total stock'
           value={formatNumber(totals.totalStockQuantity)}
           icon={Boxes}
           tone='slate'
         />
         <StatCard
-          title='Revenue'
-          value={formatCurrency(totals.revenue)}
-          icon={DollarSign}
-          tone='green'
-          hint={`${formatNumber(totals.unitsSold)} units sold`}
-        />
-        <StatCard
-          title='Low stock rows'
+          title='Low stock'
           value={formatNumber(totals.lowStockAssignments)}
           icon={AlertTriangle}
           tone='amber'
-          hint='Quantity ≤ 5'
         />
         <StatCard
           title='Out of stock'
           value={formatNumber(totals.outOfStockProducts ?? 0)}
           icon={PackageX}
-          tone='slate'
-          hint='Catalog products'
+          tone='amber'
         />
-        <StatCard
-          title='Customers'
-          value={formatNumber(totals.customers)}
-          icon={UsersRound}
-          tone='primary'
-        />
+        {/* Sales */}
         <StatCard
           title='Invoices'
           value={formatNumber(totals.invoices)}
           icon={FileText}
+          tone='primary'
+        />
+        <StatCard
+          title='Revenue'
+          value={formatCurrency(totals.revenue, { decimals: false })}
+          icon={DollarSign}
+          tone='green'
+          hint={`${formatNumber(totals.unitsSold)} units sold`}
         />
         <StatCard
           title='Outstanding due'
-          value={formatCurrency(totals.outstandingDue)}
+          value={formatCurrency(totals.outstandingDue, { decimals: false })}
           icon={DollarSign}
           tone='amber'
-          hint='Confirmed invoices'
         />
       </div>
 

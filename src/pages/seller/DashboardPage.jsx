@@ -78,11 +78,13 @@ export default function DashboardPage() {
         description='Your sales and assigned inventory summary'
       />
 
-      <div className='grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4'>
+      <div className='grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4'>
+        {/* Inventory */}
         <StatCard
           title='Assigned products'
           value={formatNumber(totals.assignedProducts)}
           icon={Package}
+          tone='primary'
         />
         <StatCard
           title='Remaining stock'
@@ -91,40 +93,42 @@ export default function DashboardPage() {
           tone='slate'
         />
         <StatCard
-          title='Total Sales'
-          value={formatCurrency(totals.revenue)}
-          icon={DollarSign}
-          tone='green'
-          hint={`${formatNumber(totals.unitsSold)} units sold`}
+          title='Received units'
+          value={formatNumber(totals.receivedUnits)}
+          icon={Warehouse}
+          tone='slate'
         />
         <StatCard
-          title='Low stock items'
+          title='Low stock'
           value={formatNumber(totals.lowStockProducts)}
           icon={AlertTriangle}
           tone='amber'
         />
+        {/* Sales */}
         <StatCard
-          title='Received units'
-          value={formatNumber(totals.receivedUnits)}
-          icon={Warehouse}
+          title='Customers'
+          value={formatNumber(totals.customerCount ?? 0)}
+          icon={Users}
+          tone='green'
         />
         <StatCard
           title='Invoices'
           value={formatNumber(totals.invoiceCount)}
           icon={FileText}
+          tone='primary'
         />
         <StatCard
-          title='Customers'
-          value={formatNumber(totals.customerCount ?? 0)}
-          icon={Users}
-          hint='Created by you'
+          title='Revenue'
+          value={formatCurrency(totals.revenue, { decimals: false })}
+          icon={DollarSign}
+          tone='green'
+          hint={`${formatNumber(totals.unitsSold)} units sold`}
         />
         <StatCard
-          title='Pending payments'
-          value={formatCurrency(totals.pendingInvoicesDue)}
+          title='Outstanding due'
+          value={formatCurrency(totals.pendingInvoicesDue, { decimals: false })}
           icon={DollarSign}
           tone='amber'
-          hint='Due on your confirmed invoices'
         />
       </div>
 
